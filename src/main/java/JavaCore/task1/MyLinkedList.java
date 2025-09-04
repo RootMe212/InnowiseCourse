@@ -1,4 +1,4 @@
-package task1;
+package JavaCore.task1;
 import java.util.NoSuchElementException;
 
 /*Create your own realization of LinkedList and implement the following operations:

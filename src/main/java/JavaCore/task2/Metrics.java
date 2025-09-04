@@ -1,6 +1,5 @@
-package task2;
+package JavaCore.task2;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
