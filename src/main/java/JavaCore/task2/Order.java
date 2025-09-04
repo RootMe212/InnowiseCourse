@@ -1,4 +1,4 @@
-package task2;
+package JavaCore.task2;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

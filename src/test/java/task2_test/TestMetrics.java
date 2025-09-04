@@ -1,8 +1,8 @@
 package task2_test;
 
+import JavaCore.task2.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import task2.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
