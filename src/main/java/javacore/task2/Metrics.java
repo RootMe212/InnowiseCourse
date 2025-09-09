@@ -1,6 +1,9 @@
 package javacore.task2;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javacore.task2.enums.OrderStatus;
 
@@ -8,14 +11,18 @@ import javacore.task2.enums.OrderStatus;
  * totalIncome currently sums price only, ignoring quantity. - done AverageCheck should compute
  * per-order total as sum of quantity * price of delivered items, then average across delivered
  * orders. - done Rename AverageCheck ? averageCheck (camelCase for methods). - done make sure that
- * you don’t have problem without ovveriding equals/hashCode (for example for Customer) - done
+ * you donï¿½t have problem without ovveriding equals/hashCode (for example for Customer) - done
  */
 public class Metrics {
 
   public static Set<String> uniqueCities(List<Order> orders) {
     return orders
         .stream()
-        .map(order -> order.getCustomer().getCity())
+        .filter(Objects::nonNull)
+        .map(Order::getCustomer)
+        .filter(Objects::nonNull)
+        .map(Customer::getCity)
+        .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }
 

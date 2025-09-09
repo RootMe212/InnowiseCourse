@@ -1,13 +1,14 @@
 package javacore.task3;
 
-import java.util.*;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CyclicBarrier;
 
 public class Faction extends Thread {
 
   private final String name;
   private final List<Robot> repository;
-  Random rand = new Random();
+  private Random rand = new Random();
   CyclicBarrier barrier;
   private int heads = 0, torsos = 0, hands = 0, feet = 0;
 

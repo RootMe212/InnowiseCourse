@@ -1,9 +1,11 @@
 package javacore.task2;
 
-import javacore.task2.enums.OrderStatus;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import javacore.task2.enums.OrderStatus;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor

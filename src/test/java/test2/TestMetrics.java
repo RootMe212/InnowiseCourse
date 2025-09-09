@@ -1,13 +1,19 @@
 package test2;
 
-import javacore.task2.*;
-import javacore.task2.enums.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import javacore.task2.Customer;
+import javacore.task2.Metrics;
+import javacore.task2.Order;
+import javacore.task2.OrderItem;
+import javacore.task2.enums.Category;
+import javacore.task2.enums.OrderStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Metrics List of unique cities where orders came from Total income for all completed orders The

@@ -1,7 +1,9 @@
 package javacore.task2;
 
 import javacore.task2.enums.Category;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 
 @NoArgsConstructor

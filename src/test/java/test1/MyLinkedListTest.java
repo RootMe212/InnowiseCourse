@@ -1,9 +1,11 @@
 package test1;
 
-import javacore.task1.MyLinkedList;
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.jupiter.api.Assertions.*;
+import javacore.task1.MyLinkedList;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MyLinkedListTest {
 

@@ -1,6 +1,7 @@
 package javacore.task3;
 
-import java.util.*;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
@@ -17,9 +18,7 @@ public class Factory extends Thread {
 
   @Override
   public void run() {
-    /**
-     * done
-     */
+
     for (int i = 1; i <= 100; i++) {
 
       synchronized (repository) {
