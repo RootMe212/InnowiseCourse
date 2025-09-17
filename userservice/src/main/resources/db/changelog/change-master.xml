@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+  objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+  <changeSet id="create-seq-card-info" author="SKS">
+    <createSequence incrementBy="50" sequenceName="card_info_seq" startValue="1"/>
+  </changeSet>
+
+  <changeSet id="create-seq-users" author="SKS">
+    <createSequence incrementBy="50" sequenceName="users_seq" startValue="1"/>
+  </changeSet>
+
+  <changeSet id="2-create-card-info" author="SKS">
+    <createTable tableName="card_info">
+
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="pk_card_info"/>
+      </column>
+
+      <column name="user_id" type="INT"/>
+
+      <column name="number" type="VARCHAR(255)"/>
+
+      <column name="holder" type="VARCHAR(255)"/>
+      <column name="expiration_date" type="DATE"/>
+    </createTable>
+
+    <createIndex tableName="card_info" indexName="idx_card_user_id">
+      <column name="user_id"/>
+    </createIndex>
+
+    <createIndex tableName="card_info" indexName="idx_card_number">
+      <column name="number"/>
+    </createIndex>
+
+  </changeSet>
+
+  <changeSet id="1-create-users" author="SKS">
+    <createTable tableName="users">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="pk_users"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+      <column name="surname" type="VARCHAR(255)"/>
+      <column name="birth_date" type="DATE"/>
+      <column name="email" type="VARCHAR(255)"/>
+    </createTable>
+
+    <createIndex tableName="users" indexName="idx_users_email">
+      <column name="email"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="1758063356025-5" author="SKS">
+    <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="card_info"
+      constraintName="FK_CARD_USER" referencedColumnNames="id" referencedTableName="users"/>
+  </changeSet>
+
+</databaseChangeLog>
