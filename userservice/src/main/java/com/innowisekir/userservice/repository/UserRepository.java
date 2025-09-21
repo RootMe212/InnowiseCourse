@@ -1,6 +1,6 @@
-package com.innowisekir.userservice.repositories;
+package com.innowisekir.userservice.repository;
 
-import com.innowisekir.userservice.entities.User;
+import com.innowisekir.userservice.entity.User;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;

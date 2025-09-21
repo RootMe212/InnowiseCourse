@@ -1,6 +1,6 @@
-package com.innowisekir.userservice.repositories;
+package com.innowisekir.userservice.repository;
 
-import com.innowisekir.userservice.entities.CardInfo;
+import com.innowisekir.userservice.entity.CardInfo;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,12 +18,12 @@ public interface CardInfoRepository extends JpaRepository<CardInfo, Long> {
 
   @Modifying
   @Transactional
-  @Query(value = "UPDATE card_info SET number =:number, holder =:holder, expiration_date =:expiration_date where id =:id", nativeQuery = true)
+  @Query(value = "UPDATE card_info SET number =:number, holder =:holder, expiration_date =:expirationDate where id =:id", nativeQuery = true)
   int updateCardInfoById(
       @Param("id") Long id,
       @Param("number") String number,
       @Param("holder") String holder,
-      @Param("expiration_date") LocalDate expiration_date
+      @Param("expirationDate") LocalDate expirationDate
   );
 
   @Modifying

@@ -1,8 +1,8 @@
 package com.innowisekir.userservice.controller;
 
-import com.innowisekir.userservice.entities.CardInfo;
-
+import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.service.CardInfoService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,28 +31,28 @@ public class CardInfoController {
 
 
   @PostMapping
-  public ResponseEntity<CardInfo> createCardInfo(@RequestBody CardInfo cardInfo) {
-    CardInfo createdCard = cardInfoService.createCard(cardInfo);
+  public ResponseEntity<CardInfoDTO> createCardInfo(@RequestBody CardInfoDTO cardInfoDTO) {
+    CardInfoDTO createdCard = cardInfoService.createCard(cardInfoDTO);
     return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<CardInfo> getCardInfoById(@PathVariable Long id) {
-    Optional<CardInfo> cardInfo = cardInfoService.getCardById(id);
+  public ResponseEntity<CardInfoDTO> getCardInfoById(@PathVariable Long id) {
+    Optional<CardInfoDTO> cardInfo = cardInfoService.getCardById(id);
     return new ResponseEntity<>(cardInfo.orElse(null), HttpStatus.OK);
   }
 
   @GetMapping("/ids")
-  public ResponseEntity<List<CardInfo>> getUsersByIds(@RequestParam("ids") List<Long> ids) {
-    List<CardInfo> cards = cardInfoService.getCardsByIds(ids);
+  public ResponseEntity<List<CardInfoDTO>> getUsersByIds(@RequestParam("ids") List<Long> ids) {
+    List<CardInfoDTO> cards = cardInfoService.getCardsByIds(ids);
     return new ResponseEntity<>(cards, HttpStatus.OK);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<String> updateCardInfo(@PathVariable Long id,
-      @RequestBody CardInfo cardInfo) {
+      @Valid @RequestBody CardInfoDTO cardInfoDTO) {
     try {
-      boolean updated = cardInfoService.updateCardInfo(cardInfo, id);
+      boolean updated = cardInfoService.updateCardInfo(cardInfoDTO, id);
       if (updated) {
         return new ResponseEntity<>("User updated successfully", HttpStatus.OK);
       } else {
@@ -64,7 +64,7 @@ public class CardInfoController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<CardInfo> deleteCard(@PathVariable Long id) {
+  public ResponseEntity<String> deleteCard(@PathVariable Long id) {
     cardInfoService.deleteCard(id);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
