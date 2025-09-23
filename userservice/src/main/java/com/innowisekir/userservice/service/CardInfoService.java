@@ -2,6 +2,7 @@ package com.innowisekir.userservice.service;
 
 import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.entity.CardInfo;
+import com.innowisekir.userservice.exception.CardInfoNotFoundException;
 import com.innowisekir.userservice.mapper.CardInfoMapper;
 import com.innowisekir.userservice.repository.CardInfoRepository;
 import java.util.List;
@@ -30,9 +31,10 @@ public class CardInfoService {
     return cardInfoMapper.toDTO(savedCardInfo);
   }
 
-  public Optional<CardInfoDTO> getCardById(Long id) {
+  public CardInfoDTO getCardById(Long id) {
     return cardInfoRepository.findById(id)
-        .map(cardInfoMapper::toDTO);
+        .map(cardInfoMapper::toDTO)
+        .orElseThrow(() -> new CardInfoNotFoundException("Card with " + id + " not found"));
   }
 
   public List<CardInfoDTO> getCardsByIds(List<Long> ids) {
@@ -44,13 +46,13 @@ public class CardInfoService {
   }
 
   @Transactional
-  public boolean updateCardInfo(CardInfoDTO cardInfoDTO, Long id) {
-    Optional<CardInfo> cardInfo = cardInfoRepository.findById(id);
+  public CardInfoDTO updateCardInfo(CardInfoDTO cardInfoDTO, Long id) {
+      CardInfo cardInfo = cardInfoRepository.findById(id)
+         .orElseThrow(() -> new CardInfoNotFoundException("Failed to update card info with id " + id + " because " + cardInfoDTO + " not found"));
 
-    if (cardInfo.isPresent()) {
       CardInfo updatedCardInfo = cardInfoMapper.toEntityForUpdate(cardInfoDTO);
       updatedCardInfo.setId(id);
-      updatedCardInfo.setUser(cardInfo.get().getUser());
+      updatedCardInfo.setUser(cardInfo.getUser());
 
       int updatedRows = cardInfoRepository.updateCardInfoById(
           id,
@@ -58,15 +60,23 @@ public class CardInfoService {
           updatedCardInfo.getHolder(),
           updatedCardInfo.getExpirationDate());
 
-      return updatedRows > 0;
+
+    if (updatedRows == 0) {
+      throw new CardInfoNotFoundException("Failed to update card with id " + id);
     }
-    return false;
-  }
+
+    return getCardById(id);
+    }
 
   @Transactional
-  public boolean deleteCard(Long id) {
+  public void deleteCard(Long id) {
+     cardInfoRepository.findById(id)
+        .orElseThrow(() -> new CardInfoNotFoundException("Failed to delete card info with id " + id + " because " + " card not found"));
+
     int deletedRows = cardInfoRepository.deleteCardInfoByIdNative(id);
-    return deletedRows > 0;
+    if (deletedRows == 0) {
+      throw new CardInfoNotFoundException("Failed to delete card with id " + id);
+    }
   }
 
 

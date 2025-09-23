@@ -2,10 +2,10 @@ package com.innowisekir.userservice.service;
 
 import com.innowisekir.userservice.dto.UserDTO;
 import com.innowisekir.userservice.entity.User;
+import com.innowisekir.userservice.exception.UserNotFoundException;
 import com.innowisekir.userservice.mapper.UserMapper;
 import com.innowisekir.userservice.repository.UserRepository;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +16,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final UserMapper userMapper;
 
+  public static final String NOT_FOUND = " not found";
   @Autowired
   public UserService(UserRepository userRepository, UserMapper userMapper) {
     this.userRepository = userRepository;
@@ -29,9 +30,10 @@ public class UserService {
     return userMapper.toDTO(savedUser);
   }
 
-  public Optional<UserDTO> getUserById(Long id) {
+  public UserDTO getUserById(Long id) {
     return userRepository.findById(id)
-        .map(userMapper::toDTO);
+        .map(userMapper::toDTO)
+        .orElseThrow(() -> new UserNotFoundException("User which id " + id + NOT_FOUND ));
   }
 
   public List<UserDTO> getUsersByIds(List<Long> ids) {
@@ -41,16 +43,17 @@ public class UserService {
         .toList();
   }
 
-  public Optional<UserDTO> findUserByEmail(String email) {
+  public UserDTO findUserByEmail(String email) {
     return userRepository.findByEmail(email)
-        .map(userMapper::toDTO) ;
+        .map(userMapper::toDTO)
+        .orElseThrow(() -> new UserNotFoundException("User with email " + email + NOT_FOUND ));
   }
 
   @Transactional
-  public boolean updateUser(Long id, UserDTO userDTO) {
-    Optional<User> user = userRepository.findById(id);
+  public UserDTO updateUser(Long id, UserDTO userDTO) {
+    userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND ));
 
-    if(user.isPresent()){
       User updateuser = userMapper.toEntityForUpdate(userDTO);
       updateuser.setId(id);
       int updatedRows = userRepository.updateUserById(
@@ -59,15 +62,22 @@ public class UserService {
           updateuser.getSurname(),
           updateuser.getEmail(),
           updateuser.getBirthDate());
-      return updatedRows > 0;
+    if (updatedRows == 0) {
+      throw new UserNotFoundException("Failed to update user with id " + id);
     }
 
-    return false;
+    return getUserById(id);
+
   }
 
   @Transactional
-  public boolean deleteUser(Long id) {
+  public void deleteUser(Long id) {
+    userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND ));
+
     int deletedRows = userRepository.deleteUserByIdNative(id);
-    return deletedRows > 0;
+    if (deletedRows == 0) {
+      throw new UserNotFoundException("Failed to delete user with id " + id);
+    }
   }
 }

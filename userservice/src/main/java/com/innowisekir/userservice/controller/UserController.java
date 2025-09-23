@@ -18,13 +18,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Create entities for tables in DB. Implement CRUD operations: Create User/Card Get User/Card by id
  * Get Users/Cards by ids Get User by email Update User/Card by id Delete User/Card by id
  */
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -39,39 +40,31 @@ public class UserController {
 
   @GetMapping("/{id}")
   public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-    Optional<UserDTO> user = userService.getUserById(id);
-    return new ResponseEntity<>(user.orElse(null), HttpStatus.OK);
+    UserDTO user = userService.getUserById(id);
+    return ResponseEntity.ok(user);
   }
 
   @GetMapping("/ids")
   public ResponseEntity<List<UserDTO>> getUsersByIds(@RequestParam("ids") List<Long> ids) {
     List<UserDTO> users = userService.getUsersByIds(ids);
-    return new ResponseEntity<>(users, HttpStatus.OK);
+    return ResponseEntity.ok(users);
   }
 
   @GetMapping("/email")
   public ResponseEntity<UserDTO> getUserByEmail(@RequestParam("email") String email) {
-    Optional<UserDTO> user = userService.findUserByEmail(email);
-    return new ResponseEntity<>(user.orElse(null), HttpStatus.OK);
+    UserDTO user = userService.findUserByEmail(email);
+    return ResponseEntity.ok(user);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<String> updateUser(@PathVariable Long id,@Valid @RequestBody UserDTO userDTO) {
-    try {
-      boolean updated = userService.updateUser(id, userDTO);
-      if (updated) {
-        return new ResponseEntity<>("User updated successfully", HttpStatus.OK);
-      } else {
-        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-      }
-    } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
+  public ResponseEntity<UserDTO> updateUser(@PathVariable Long id,@Valid @RequestBody UserDTO userDTO) {
+    UserDTO updated = userService.updateUser(id, userDTO);
+    return ResponseEntity.ok(updated);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+  public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    return ResponseEntity.noContent().build();
   }
 }
