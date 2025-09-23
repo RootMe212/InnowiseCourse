@@ -6,7 +6,6 @@ import com.innowisekir.userservice.exception.CardInfoNotFoundException;
 import com.innowisekir.userservice.mapper.CardInfoMapper;
 import com.innowisekir.userservice.repository.CardInfoRepository;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
