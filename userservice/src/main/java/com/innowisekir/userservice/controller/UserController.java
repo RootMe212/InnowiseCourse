@@ -50,7 +50,7 @@ public class UserController {
 
   @GetMapping("/email")
   public ResponseEntity<UserDTO> getUserByEmail(@RequestParam("email") String email) {
-    UserDTO user = userService.findUserByEmail(email);
+    UserDTO user = userService.getUserByEmail(email);
     return ResponseEntity.ok(user);
   }
 

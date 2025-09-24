@@ -1,5 +1,6 @@
 package com.innowisekir.userservice.mapper;
 
+import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.entity.CardInfo;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -8,6 +9,6 @@ import org.mapstruct.Mapper;
 public interface CardInfoListMapper {
 
 
-  List<CardInfo> toDTOList(List<CardInfo> cardInfoList);
+  List<CardInfoDTO> toDTOList(List<CardInfo> cardInfoList);
 
 }
