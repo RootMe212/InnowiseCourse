@@ -4,7 +4,6 @@ import com.innowisekir.userservice.dto.UserDTO;
 import com.innowisekir.userservice.entity.User;
 import com.innowisekir.userservice.exception.UserNotFoundException;
 import com.innowisekir.userservice.mapper.CardInfoListMapper;
-import com.innowisekir.userservice.mapper.CardInfoListMapperImpl;
 import com.innowisekir.userservice.mapper.UserMapper;
 import com.innowisekir.userservice.repository.UserRepository;
 import java.util.List;
