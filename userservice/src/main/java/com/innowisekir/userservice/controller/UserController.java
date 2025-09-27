@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Create entities for tables in DB. Implement CRUD operations: Create User/Card Get User/Card by id
+ *  Create User/Card Get User/Card by id
  * Get Users/Cards by ids Get User by email Update User/Card by id Delete User/Card by id
  */
 @Slf4j
