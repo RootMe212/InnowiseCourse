@@ -42,7 +42,7 @@ import org.testcontainers.utility.DockerImageName;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-classes = com.innowisekir.userservice.UserserviceApplication.class)
+    classes = com.innowisekir.userservice.UserserviceApplication.class)
 @Testcontainers
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -50,7 +50,8 @@ class UserserviceApplicationTest {
 
   @Container
   @ServiceConnection
-  static GenericContainer<?> redisContainer = new GenericContainer<>(DockerImageName.parse("redis:latest"))
+  static GenericContainer<?> redisContainer = new GenericContainer<>(
+      DockerImageName.parse("redis:latest"))
       .withExposedPorts(6379);
 
   @Container
@@ -85,7 +86,7 @@ class UserserviceApplicationTest {
     userRepository.deleteAll();
     cardInfoRepository.deleteAll();
     Cache cache = cacheManager.getCache("USER_CACHE");
-    if (cache!=null){
+    if (cache != null) {
       cache.clear();
     }
   }
@@ -98,18 +99,19 @@ class UserserviceApplicationTest {
     UserDTO userDTO = new UserDTO(null,
         "Kirill",
         "Samkov",
-        LocalDate.of(2005,5,20),
+        LocalDate.of(2005, 5, 20),
         "kirill@gmail.com",
         Collections.emptyList());
 
     MvcResult result = mockMvc.perform(post("/api/users")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(userDTO)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(userDTO)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").isNumber())
         .andReturn();
 
-    UserDTO createdUserDTO = mapper.readValue(result.getResponse().getContentAsString(), UserDTO.class);
+    UserDTO createdUserDTO = mapper.readValue(result.getResponse().getContentAsString(),
+        UserDTO.class);
     Long userId = createdUserDTO.getId();
 
     Assertions.assertTrue(userRepository.findById(userId).isPresent());
@@ -155,7 +157,7 @@ class UserserviceApplicationTest {
     User user = new User();
     user.setName("Kirill");
     user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005,5,20));
+    user.setBirthDate(LocalDate.of(2005, 5, 20));
     user.setEmail("kirill@gmail.com");
     user = userRepository.save(user);
 
@@ -171,14 +173,14 @@ class UserserviceApplicationTest {
     User user1 = new User();
     user1.setName("User1");
     user1.setSurname("Surname1");
-    user1.setBirthDate(LocalDate.of(2000,1,1));
+    user1.setBirthDate(LocalDate.of(2000, 1, 1));
     user1.setEmail("user1@gmail.com");
     user1 = userRepository.save(user1);
 
     User user2 = new User();
     user2.setName("User2");
     user2.setSurname("Surname2");
-    user2.setBirthDate(LocalDate.of(2000,1,1));
+    user2.setBirthDate(LocalDate.of(2000, 1, 1));
     user2.setEmail("user2@gmail.com");
     user2 = userRepository.save(user2);
 
@@ -196,7 +198,7 @@ class UserserviceApplicationTest {
     User user = new User();
     user.setName("Max");
     user.setSurname("Chills");
-    user.setBirthDate(LocalDate.of(2000,1,1));
+    user.setBirthDate(LocalDate.of(2000, 1, 1));
     user.setEmail("max@gmail.com");
     user = userRepository.save(user);
 
@@ -207,9 +209,9 @@ class UserserviceApplicationTest {
         "updatedname@gmail.com",
         Collections.emptyList());
 
-    mockMvc.perform(MockMvcRequestBuilders.put("/api/users/"+ user.getId())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(updatedUserDTO)))
+    mockMvc.perform(MockMvcRequestBuilders.put("/api/users/" + user.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(updatedUserDTO)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(user.getId()))
         .andExpect(jsonPath("$.name").value("Updated name"))
@@ -217,10 +219,10 @@ class UserserviceApplicationTest {
 
     Cache cache = cacheManager.getCache("USER_CACHE");
     assertNotNull(cache);
-    UserDTO cachedUserDTO = cache.get(user.getId(),UserDTO.class);
+    UserDTO cachedUserDTO = cache.get(user.getId(), UserDTO.class);
     assertNotNull(cachedUserDTO);
-    Assertions.assertEquals("Updated name",cachedUserDTO.getName());
-    Assertions.assertEquals("updatedname@gmail.com",cachedUserDTO.getEmail());
+    Assertions.assertEquals("Updated name", cachedUserDTO.getName());
+    Assertions.assertEquals("updatedname@gmail.com", cachedUserDTO.getEmail());
   }
 
   @Test
@@ -229,7 +231,7 @@ class UserserviceApplicationTest {
     User user = new User();
     user.setName("Max");
     user.setSurname("surname");
-    user.setBirthDate(LocalDate.of(2001,1,1));
+    user.setBirthDate(LocalDate.of(2001, 1, 1));
     user.setEmail("max@gmail.com");
     user = userRepository.save(user);
 
@@ -271,7 +273,8 @@ class UserserviceApplicationTest {
         .andExpect(jsonPath("$.id").isNumber())
         .andReturn();
 
-    CardInfoDTO createdCardDTO = mapper.readValue(result.getResponse().getContentAsString(), CardInfoDTO.class);
+    CardInfoDTO createdCardDTO = mapper.readValue(result.getResponse().getContentAsString(),
+        CardInfoDTO.class);
     Long cardId = createdCardDTO.getId();
 
     Assertions.assertTrue(cardInfoRepository.findById(cardId).isPresent());
@@ -373,7 +376,7 @@ class UserserviceApplicationTest {
         card.getId(),
         user.getId(),
         "54321",
-        "Updated Holder",
+        "Kirill Samkov",
         LocalDate.of(2026, 1, 1)
     );
 
@@ -383,14 +386,17 @@ class UserserviceApplicationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(card.getId()))
         .andExpect(jsonPath("$.number").value("54321"))
-        .andExpect(jsonPath("$.holder").value("Updated Holder"));
+        .andExpect(jsonPath("$.expirationDate").value("2026-01-01")) // ← Проверяем дату
+        .andExpect(jsonPath("$.userId").value(user.getId()));
 
     Cache cache = cacheManager.getCache("CARD_CACHE");
     assertNotNull(cache);
     CardInfoDTO cachedCardDTO = cache.get(card.getId(), CardInfoDTO.class);
     assertNotNull(cachedCardDTO);
     Assertions.assertEquals("54321", cachedCardDTO.getNumber());
-    Assertions.assertEquals("Updated Holder", cachedCardDTO.getHolder());
+    Assertions.assertEquals(LocalDate.of(2026, 1, 1),
+        cachedCardDTO.getExpirationDate()); // ← Проверяем дату
+    Assertions.assertEquals(user.getId(), cachedCardDTO.getUserId());
   }
 
   @Test

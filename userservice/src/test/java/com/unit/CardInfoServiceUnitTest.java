@@ -48,7 +48,7 @@ class CardInfoServiceUnitTest {
   private User testUser;
 
   @BeforeEach
-   void setUp() {
+  void setUp() {
     testUser = new User();
     testUser.setId(1L);
     testUser.setName("Kirill");
@@ -60,14 +60,12 @@ class CardInfoServiceUnitTest {
     testCard.setId(1L);
     testCard.setUser(testUser);
     testCard.setNumber("11111");
-    testCard.setHolder("Samkov Kirill");
     testCard.setExpirationDate(LocalDate.of(2025, 10, 10));
 
     testCardDTO = new CardInfoDTO();
     testCardDTO.setId(1L);
     testCardDTO.setUserId(1L);
     testCardDTO.setNumber("11111");
-    testCardDTO.setHolder("Samkov Kirill");
     testCardDTO.setExpirationDate(LocalDate.of(2025, 10, 10));
   }
 
@@ -84,7 +82,6 @@ class CardInfoServiceUnitTest {
     assertEquals(testCardDTO.getId(), resultCard.getId());
     assertEquals(testCardDTO.getUserId(), resultCard.getUserId());
     assertEquals(testCardDTO.getNumber(), resultCard.getNumber());
-    assertEquals(testCardDTO.getHolder(), resultCard.getHolder());
     assertEquals(testCardDTO.getExpirationDate(), resultCard.getExpirationDate());
     verify(userRepository).findById(1L);
     verify(cardInfoRepository).save(any(CardInfo.class));
@@ -108,7 +105,7 @@ class CardInfoServiceUnitTest {
 
   @Test
   void getCardInfoByIdNotFound() {
-    when(cardInfoRepository.findById(1L)).thenReturn(Optional.of(testCard));
+    when(cardInfoRepository.findById(1L)).thenReturn(Optional.empty());
 
     assertThrows(CardInfoNotFoundException.class, () -> cardInfoService.getCardById(1L));
     verify(cardInfoRepository).findById(1L);
@@ -129,7 +126,6 @@ class CardInfoServiceUnitTest {
     cardDTO2.setId(2L);
     cardDTO2.setUserId(1L);
     cardDTO2.setNumber("22222");
-    cardDTO2.setHolder("Bob");
     cardDTO2.setExpirationDate(LocalDate.of(2026, 1, 1));
 
     when(cardInfoRepository.findAllById(ids)).thenReturn(Arrays.asList(testCard, card2));
@@ -148,25 +144,22 @@ class CardInfoServiceUnitTest {
   void updateCardInfo() {
     CardInfoDTO updateDTO = new CardInfoDTO();
     updateDTO.setNumber("333");
-    updateDTO.setHolder("smith");
     updateDTO.setExpirationDate(LocalDate.of(2027, 12, 31));
 
     CardInfo updatedCard = new CardInfo();
     updatedCard.setId(1L);
     updatedCard.setUser(testUser);
     updatedCard.setNumber("333");
-    updatedCard.setHolder("smith");
     updatedCard.setExpirationDate(LocalDate.of(2027, 12, 31));
 
     CardInfoDTO updatedCardDTO = new CardInfoDTO();
     updatedCardDTO.setId(1L);
     updatedCardDTO.setUserId(1L);
     updatedCardDTO.setNumber("333");
-    updatedCardDTO.setHolder("smith");
     updatedCardDTO.setExpirationDate(LocalDate.of(2027, 12, 31));
 
     when(cardInfoRepository.findById(1L)).thenReturn(Optional.of(testCard));
-    when(cardInfoRepository.updateCardInfoById(1L, "333", "smith",
+    when(cardInfoRepository.updateCardInfoById(1L, "333",
         LocalDate.of(2027, 12, 31))).thenReturn(1);
     when(cardInfoRepository.findById(1L)).thenReturn(Optional.of(updatedCard));
     when(cardInfoMapper.toDTO(updatedCard)).thenReturn(updatedCardDTO);
@@ -176,7 +169,7 @@ class CardInfoServiceUnitTest {
     assertThat(resultCard).isNotNull();
     assertThat(resultCard.getNumber()).isEqualTo("333");
     verify(cardInfoRepository, times(2)).findById(1L);
-    verify(cardInfoRepository).updateCardInfoById(1L, "333", "smith", LocalDate.of(2027, 12, 31));
+    verify(cardInfoRepository).updateCardInfoById(1L, "333", LocalDate.of(2027, 12, 31));
   }
 
   @Test

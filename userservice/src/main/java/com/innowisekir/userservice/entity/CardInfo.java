@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 @Entity
 @Getter
@@ -32,9 +33,10 @@ public class CardInfo {
   @Column(name = "number", nullable = false, unique = true)
   private String number;
 
-  @Column(name = "holder", nullable = false)
+  @Formula("(SELECT CONCAT(u.name, ' ', u.surname) FROM users u WHERE u.id = user_id)")
   private String holder;
 
   @Column(name = "expiration_date", nullable = false)
   private LocalDate expirationDate;
+
 }

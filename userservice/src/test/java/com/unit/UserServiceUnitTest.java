@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.dto.UserDTO;
 import com.innowisekir.userservice.entity.CardInfo;
@@ -32,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceUnitTest {
+
   @InjectMocks
   private UserService userService;
 
@@ -57,21 +59,27 @@ class UserServiceUnitTest {
     testUser.setName("Kirill");
     testUser.setSurname("Samkov");
     testUser.setEmail("kirill@gmail.com");
-    testUser.setBirthDate(LocalDate.of(2005,5,20));
+    testUser.setBirthDate(LocalDate.of(2005, 5, 20));
 
     testUserDTO = new UserDTO();
     testUserDTO.setId(1L);
     testUserDTO.setName("Kirill");
     testUserDTO.setSurname("Samkov");
     testUserDTO.setEmail("kirill@gmail.com");
-    testUserDTO.setBirthDate(LocalDate.of(2005,5,20));
+    testUserDTO.setBirthDate(LocalDate.of(2005, 5, 20));
 
     testCard = new CardInfo();
     testCard.setId(1L);
     testCard.setUser(testUser);
-    testCard.setNumber("111");
+    testCard.setNumber("11111");
     testCard.setHolder("Samkov Kirill");
-    testCard.setExpirationDate(LocalDate.of(2025,10,10));
+    testCard.setExpirationDate(LocalDate.of(2025, 10, 10));
+
+    testCardDTO = new CardInfoDTO();
+    testCardDTO.setId(1L);
+    testCardDTO.setUserId(1L);
+    testCardDTO.setNumber("11111");
+    testCardDTO.setExpirationDate(LocalDate.of(2025, 10, 10));
 
     testUser.setCards(Arrays.asList(testCard));
     testUserDTO.setCards(Arrays.asList(testCardDTO));
@@ -96,7 +104,7 @@ class UserServiceUnitTest {
   }
 
   @Test
-  void getUserByIdFound(){
+  void getUserByIdFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(testUser));
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
     when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
@@ -112,7 +120,7 @@ class UserServiceUnitTest {
   }
 
   @Test
-  void getUserByIdNotFound(){
+  void getUserByIdNotFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     assertThrows(UserNotFoundException.class, () -> userService.getUserById(1L));
@@ -128,20 +136,19 @@ class UserServiceUnitTest {
     testUser2.setName("Bob");
     testUser2.setSurname("Smith");
     testUser2.setEmail("bob@gmail.com");
-    testUser2.setBirthDate(LocalDate.of(2000,4,21));
+    testUser2.setBirthDate(LocalDate.of(2000, 4, 21));
 
     UserDTO testUserDTO2 = new UserDTO();
     testUserDTO2.setId(2L);
     testUserDTO2.setName("Bob");
     testUserDTO2.setSurname("Smith");
     testUserDTO2.setEmail("bob@gmail.com");
-    testUserDTO2.setBirthDate(LocalDate.of(2000,4,21));
+    testUserDTO2.setBirthDate(LocalDate.of(2000, 4, 21));
 
     when(userRepository.findByIdIn(ids)).thenReturn(Arrays.asList(testUser, testUser2));
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
     when(userMapper.toDTO(testUser2)).thenReturn(testUserDTO2);
     when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
-
 
     List<UserDTO> resultUsers = userService.getUsersByIds(ids);
 
@@ -177,13 +184,13 @@ class UserServiceUnitTest {
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
     when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
 
-
     UserDTO resultUser = userService.updateUser(1L, testUserDTO);
 
     assertThat(resultUser).isNotNull();
     assertThat(resultUser.getName()).isEqualTo("Kirill");
     verify(userRepository, times(2)).findById(1L);
-    verify(userRepository).updateUserById(1L, "Kirill", "Samkov", "kirill@gmail.com", LocalDate.of(2005,5,20));
+    verify(userRepository).updateUserById(1L, "Kirill", "Samkov", "kirill@gmail.com",
+        LocalDate.of(2005, 5, 20));
 
   }
 

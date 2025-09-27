@@ -16,20 +16,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class UserDTO {
+
   private Long id;
 
-  @NotBlank
+  @NotBlank(message = "Name cannot be blank")
   private String name;
 
-  @NotBlank
+  @NotBlank(message = "Surname cannot be blank")
   private String surname;
 
-  @NotNull
-  @Past
+  @NotNull(message = "Birth date cannot be null")
+  @Past(message = "Birth date must be in the past")
   private LocalDate birthDate;
 
-  @NotBlank
-  @Email
+  @NotBlank(message = "Email cannot be blank")
+  @Email(message = "Invalid email format")
   private String email;
 
   private List<CardInfoDTO> cards;

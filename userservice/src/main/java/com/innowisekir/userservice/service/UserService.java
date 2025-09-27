@@ -2,11 +2,13 @@ package com.innowisekir.userservice.service;
 
 import com.innowisekir.userservice.dto.UserDTO;
 import com.innowisekir.userservice.entity.User;
+import com.innowisekir.userservice.exception.InvalidEmailException;
 import com.innowisekir.userservice.exception.UserNotFoundException;
 import com.innowisekir.userservice.mapper.CardInfoListMapper;
 import com.innowisekir.userservice.mapper.UserMapper;
 import com.innowisekir.userservice.repository.UserRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -24,7 +26,8 @@ public class UserService {
   private final CardInfoListMapper cardInfoListMapper;
 
   @Autowired
-  public UserService(UserRepository userRepository, UserMapper userMapper, CardInfoListMapper cardInfoListMapper) {
+  public UserService(UserRepository userRepository, UserMapper userMapper,
+      CardInfoListMapper cardInfoListMapper) {
     this.userRepository = userRepository;
     this.userMapper = userMapper;
 
@@ -33,14 +36,13 @@ public class UserService {
 
   @CachePut(value = "USER_CACHE", key = "#result.id")
   public UserDTO createUser(UserDTO userDTO) {
+    if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
+      throw new InvalidEmailException("Email already exists");
+    }
     User user = userMapper.toEntity(userDTO);
     User savedUser = userRepository.save(user);
 
-    UserDTO dto = userMapper.toDTO(savedUser);
-    if (savedUser.getCards()!=null){
-      dto.setCards(cardInfoListMapper.toDTOList(savedUser.getCards()));
-    }
-    return dto;
+    return returnUserDTO(savedUser);
   }
 
   @Cacheable(value = "USER_CACHE", key = "#id")
@@ -48,25 +50,14 @@ public class UserService {
     User user = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException("User which id " + id + NOT_FOUND));
 
-    UserDTO userDTO = userMapper.toDTO(user);
-    if (userDTO.getCards()!=null){
-      userDTO.setCards(cardInfoListMapper.toDTOList(user.getCards()));
-    }
-    return userDTO;
+    return returnUserDTO(user);
   }
 
   @Cacheable(value = "USER_CACHE", key = "'all:' + #ids.hashCode()")
   public List<UserDTO> getUsersByIds(List<Long> ids) {
     List<User> users = userRepository.findByIdIn(ids);
     return users.stream()
-        .map(
-            u -> {
-              UserDTO userDTO = userMapper.toDTO(u);
-              if (userDTO.getCards()!=null){
-                userDTO.setCards(cardInfoListMapper.toDTOList(u.getCards()));
-              }
-              return userDTO;
-            })
+        .map(this::returnUserDTO)
         .toList();
   }
 
@@ -75,18 +66,20 @@ public class UserService {
     User user = userRepository.findByEmail(email)
         .orElseThrow(() -> new UserNotFoundException("User with email " + email + NOT_FOUND));
 
-    UserDTO userDTO = userMapper.toDTO(user);
-    if (userDTO.getCards()!=null){
-      userDTO.setCards(cardInfoListMapper.toDTOList(user.getCards()));
-    }
-    return userDTO;
+    return returnUserDTO(user);
   }
+
 
   @Transactional
   @CachePut(value = "USER_CACHE", key = "#result.id")
   public UserDTO updateUser(Long id, UserDTO userDTO) {
     userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND));
+
+    Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
+    if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
+      throw new InvalidEmailException("Email already exists");
+    }
 
     userRepository.updateUserById(
         id,
@@ -99,20 +92,24 @@ public class UserService {
     User updatedUser = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND));
 
-    UserDTO result = userMapper.toDTO(updatedUser);
-    if (updatedUser.getCards() != null) {
-      result.setCards(cardInfoListMapper.toDTOList(updatedUser.getCards()));
-    }
-    return result;
+    return returnUserDTO(updatedUser);
 
   }
 
   @Transactional
-  @CacheEvict(value = "USER_CACHE",key = "#id")
+  @CacheEvict(value = "USER_CACHE", key = "#id")
   public void deleteUser(Long id) {
     userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND));
 
     userRepository.deleteUserByIdNative(id);
+  }
+
+  private UserDTO returnUserDTO(User user) {
+    UserDTO userDTO = userMapper.toDTO(user);
+    if (userDTO.getCards() != null) {
+      userDTO.setCards(cardInfoListMapper.toDTOList(user.getCards()));
+    }
+    return userDTO;
   }
 }

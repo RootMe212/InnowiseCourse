@@ -18,13 +18,12 @@ public class CardInfoDTO {
 
   private Long userId;
 
-  @NotBlank
+  @NotBlank(message = "Card number cannot be blank")
   @Pattern(regexp = "\\d{5}$")
   private String number;
 
-  @NotBlank
   private String holder;
 
-  @NotNull
+  @NotNull(message = "Expiration date cannot be null")
   private LocalDate expirationDate;
 }

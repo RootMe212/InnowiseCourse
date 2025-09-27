@@ -31,9 +31,11 @@ public class CardInfoService {
   }
 
   @CachePut(value = "CARD_CACHE", key = "#result.id")
+  @CacheEvict(value = "USER_CACHE", key = "#cardInfoDTO.userId")
   public CardInfoDTO createCard(CardInfoDTO cardInfoDTO) {
     User user = userRepository.findById(cardInfoDTO.getUserId())
-        .orElseThrow(() -> new CardInfoNotFoundException("User with id " + cardInfoDTO.getUserId() + " not found"));
+        .orElseThrow(() -> new CardInfoNotFoundException(
+            "User with id " + cardInfoDTO.getUserId() + " not found"));
 
     CardInfo cardInfo = cardInfoMapper.toEntity(cardInfoDTO);
     cardInfo.setUser(user);
@@ -58,6 +60,7 @@ public class CardInfoService {
   }
 
   @CachePut(value = "CARD_CACHE", key = "#result.id")
+  @CacheEvict(value = "USER_CACHE", key = "#cardInfoDTO.userId")
   @Transactional
   public CardInfoDTO updateCardInfo(CardInfoDTO cardInfoDTO, Long id) {
     cardInfoRepository.findById(id)
@@ -66,7 +69,6 @@ public class CardInfoService {
     cardInfoRepository.updateCardInfoById(
         id,
         cardInfoDTO.getNumber(),
-        cardInfoDTO.getHolder(),
         cardInfoDTO.getExpirationDate()
     );
 

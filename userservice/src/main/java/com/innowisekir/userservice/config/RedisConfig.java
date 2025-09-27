@@ -19,10 +19,12 @@ public class RedisConfig {
   public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    objectMapper.disable(
+        com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
 
-    GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+    GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(
+        objectMapper);
 
     RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
         .entryTtl(Duration.ofMinutes(5))

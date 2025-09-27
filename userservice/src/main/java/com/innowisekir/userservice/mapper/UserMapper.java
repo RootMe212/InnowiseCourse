@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {CardInfoMapper.class})
 public interface UserMapper {
-  @Mapping(target = "cards", ignore = true)
+
   UserDTO toDTO(User user);
 
   @Mapping(target = "cards", ignore = true)

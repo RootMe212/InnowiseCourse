@@ -42,9 +42,6 @@
       <column name="number" type="VARCHAR(255)">
         <constraints nullable="false" unique="true"/>
       </column>
-      <column name="holder" type="VARCHAR(255)">
-        <constraints nullable="false"/>
-      </column>
       <column name="expiration_date" type="DATE">
         <constraints nullable="false"/>
       </column>
@@ -59,7 +56,7 @@
     </createIndex>
   </changeSet>
 
-  <!-- Добавляем внешний ключ -->
+
   <changeSet id="3-add-foreign-key" author="SKS">
     <addForeignKeyConstraint
       baseColumnNames="user_id"

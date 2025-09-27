@@ -52,8 +52,8 @@ public class CardInfoController {
   @PutMapping("/{id}")
   public ResponseEntity<CardInfoDTO> updateCardInfo(@PathVariable Long id,
       @Valid @RequestBody CardInfoDTO cardInfoDTO) {
-      CardInfoDTO updated = cardInfoService.updateCardInfo(cardInfoDTO, id);
-      return ResponseEntity.ok(updated);
+    CardInfoDTO updated = cardInfoService.updateCardInfo(cardInfoDTO, id);
+    return ResponseEntity.ok(updated);
   }
 
   @DeleteMapping("/{id}")

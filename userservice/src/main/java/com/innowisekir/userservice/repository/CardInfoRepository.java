@@ -18,11 +18,10 @@ public interface CardInfoRepository extends JpaRepository<CardInfo, Long> {
 
   @Modifying(clearAutomatically = true)
   @Transactional
-  @Query(value = "UPDATE card_info SET number =:number, holder =:holder, expiration_date =:expirationDate where id =:id", nativeQuery = true)
+  @Query(value = "UPDATE card_info SET number =:number, expiration_date =:expirationDate where id =:id", nativeQuery = true)
   int updateCardInfoById(
       @Param("id") Long id,
       @Param("number") String number,
-      @Param("holder") String holder,
       @Param("expirationDate") LocalDate expirationDate
   );
 
