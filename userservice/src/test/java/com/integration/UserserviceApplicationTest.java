@@ -1,6 +1,7 @@
 package com.integration;
 
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -235,7 +236,7 @@ class UserserviceApplicationTest {
     mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/" + user.getId()))
         .andExpect(status().isNoContent());
 
-    Assertions.assertFalse(userRepository.findById(user.getId()).isPresent());
+    assertFalse(userRepository.findById(user.getId()).isPresent());
 
     Cache cache = cacheManager.getCache("USER_CACHE");
     assertNotNull(cache);
@@ -412,7 +413,7 @@ class UserserviceApplicationTest {
     mockMvc.perform(MockMvcRequestBuilders.delete("/api/cards/" + card.getId()))
         .andExpect(status().isNoContent());
 
-    Assertions.assertFalse(cardInfoRepository.findById(card.getId()).isPresent());
+    assertFalse(cardInfoRepository.findById(card.getId()).isPresent());
 
     Cache cache = cacheManager.getCache("CARD_CACHE");
     assertNotNull(cache);
