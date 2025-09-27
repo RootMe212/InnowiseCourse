@@ -31,7 +31,7 @@ public class UserService {
     this.cardInfoListMapper = cardInfoListMapper;
   }
 
-  @CachePut(value = "USER_CACHE", key = "#result.id()")
+  @CachePut(value = "USER_CACHE", key = "#result.id")
   public UserDTO createUser(UserDTO userDTO) {
     User user = userMapper.toEntity(userDTO);
     User savedUser = userRepository.save(user);
@@ -83,22 +83,18 @@ public class UserService {
   }
 
   @Transactional
-  @CachePut(value = "USER_CACHE", key = "#result.id()")
+  @CachePut(value = "USER_CACHE", key = "#result.id")
   public UserDTO updateUser(Long id, UserDTO userDTO) {
     userRepository.findById(id)
-        .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND ));
+        .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND));
 
-      User updateuser = userMapper.toEntityForUpdate(userDTO);
-      updateuser.setId(id);
-      int updatedRows = userRepository.updateUserById(
-          id,
-          updateuser.getName(),
-          updateuser.getSurname(),
-          updateuser.getEmail(),
-          updateuser.getBirthDate());
-    if (updatedRows == 0) {
-      throw new UserNotFoundException("Failed to update user with id " + id);
-    }
+    userRepository.updateUserById(
+        id,
+        userDTO.getName(),
+        userDTO.getSurname(),
+        userDTO.getEmail(),
+        userDTO.getBirthDate()
+    );
 
     User updatedUser = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND));
@@ -115,11 +111,8 @@ public class UserService {
   @CacheEvict(value = "USER_CACHE",key = "#id")
   public void deleteUser(Long id) {
     userRepository.findById(id)
-        .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND ));
+        .orElseThrow(() -> new UserNotFoundException("User with id " + id + NOT_FOUND));
 
-    int deletedRows = userRepository.deleteUserByIdNative(id);
-    if (deletedRows == 0) {
-      throw new UserNotFoundException("Failed to delete user with id " + id);
-    }
+    userRepository.deleteUserByIdNative(id);
   }
 }

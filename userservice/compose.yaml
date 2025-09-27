@@ -1,5 +1,33 @@
 services:
   redis:
     image: redis:latest
+    container_name: userservice-redis
     ports:
       - "6379:6379"
+
+  postgres:
+    image: postgres:17
+    container_name: userservice-postgres
+    environment:
+      POSTGRES_DB: userservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234567
+    ports:
+      - "5433:5432"
+
+  userservice:
+    build:
+      context: .
+    container_name: userservice_app
+    ports:
+      - "8081:8080"
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234567
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379

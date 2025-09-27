@@ -16,7 +16,7 @@ public interface CardInfoRepository extends JpaRepository<CardInfo, Long> {
   @Query("SELECT c from CardInfo c where c.id in :ids")
   List<CardInfo> findByIdIn(@Param("ids") List<Long> ids);
 
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Transactional
   @Query(value = "UPDATE card_info SET number =:number, holder =:holder, expiration_date =:expirationDate where id =:id", nativeQuery = true)
   int updateCardInfoById(

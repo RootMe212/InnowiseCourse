@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Query("SELECT u from User u WHERE u.id IN :ids")
   List<User> findByIdIn(@Param("ids") List<Long> ids);
 
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Transactional
   @Query(value = "UPDATE users SET name = :name, surname = :surname, email = :email, birth_date = :birthDate WHERE id = :id",
       nativeQuery = true)
@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
       @Param("surname") String surname, @Param("email") String email,
       @Param("birthDate") LocalDate birthDate);
 
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Transactional
   @Query(value = "DELETE FROM users WHERE id = :id", nativeQuery = true)
   int deleteUserByIdNative(@Param("id") Long id);

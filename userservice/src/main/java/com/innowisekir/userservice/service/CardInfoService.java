@@ -2,9 +2,11 @@ package com.innowisekir.userservice.service;
 
 import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.entity.CardInfo;
+import com.innowisekir.userservice.entity.User;
 import com.innowisekir.userservice.exception.CardInfoNotFoundException;
 import com.innowisekir.userservice.mapper.CardInfoMapper;
 import com.innowisekir.userservice.repository.CardInfoRepository;
+import com.innowisekir.userservice.repository.UserRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,16 +20,23 @@ public class CardInfoService {
 
   private final CardInfoRepository cardInfoRepository;
   private final CardInfoMapper cardInfoMapper;
+  private final UserRepository userRepository;
 
   @Autowired
-  public CardInfoService(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper) {
+  public CardInfoService(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper,
+      UserRepository userRepository) {
     this.cardInfoRepository = cardInfoRepository;
     this.cardInfoMapper = cardInfoMapper;
+    this.userRepository = userRepository;
   }
 
-  @CachePut(value = "CARD_CACHE", key = "#result.id()")
+  @CachePut(value = "CARD_CACHE", key = "#result.id")
   public CardInfoDTO createCard(CardInfoDTO cardInfoDTO) {
+    User user = userRepository.findById(cardInfoDTO.getUserId())
+        .orElseThrow(() -> new CardInfoNotFoundException("User with id " + cardInfoDTO.getUserId() + " not found"));
+
     CardInfo cardInfo = cardInfoMapper.toEntity(cardInfoDTO);
+    cardInfo.setUser(user);
     CardInfo savedCardInfo = cardInfoRepository.save(cardInfo);
     return cardInfoMapper.toDTO(savedCardInfo);
   }
@@ -39,7 +48,7 @@ public class CardInfoService {
         .orElseThrow(() -> new CardInfoNotFoundException("Card with " + id + " not found"));
   }
 
-  @Cacheable(value = "CARD_CACHE", key = "'all:'+ ids.hashCode()")
+  @Cacheable(value = "CARD_CACHE", key = "'all:'+ #ids.hashCode()")
   public List<CardInfoDTO> getCardsByIds(List<Long> ids) {
     List<CardInfo> cardInfos = cardInfoRepository.findAllById(ids);
     return cardInfos
@@ -48,26 +57,18 @@ public class CardInfoService {
         .toList();
   }
 
-  @CachePut(value = "CARD_CACHE", key = "#result.id()")
+  @CachePut(value = "CARD_CACHE", key = "#result.id")
   @Transactional
   public CardInfoDTO updateCardInfo(CardInfoDTO cardInfoDTO, Long id) {
-    CardInfo cardInfo = cardInfoRepository.findById(id)
-        .orElseThrow(() -> new CardInfoNotFoundException(
-            "Failed to update card info with id " + id + " because " + cardInfoDTO + " not found"));
+    cardInfoRepository.findById(id)
+        .orElseThrow(() -> new CardInfoNotFoundException("Card with id " + id + " not found"));
 
-    CardInfo updatedCardInfo = cardInfoMapper.toEntityForUpdate(cardInfoDTO);
-    updatedCardInfo.setId(id);
-    updatedCardInfo.setUser(cardInfo.getUser());
-
-    int updatedRows = cardInfoRepository.updateCardInfoById(
+    cardInfoRepository.updateCardInfoById(
         id,
-        updatedCardInfo.getNumber(),
-        updatedCardInfo.getHolder(),
-        updatedCardInfo.getExpirationDate());
-
-    if (updatedRows == 0) {
-      throw new CardInfoNotFoundException("Failed to update card with id " + id);
-    }
+        cardInfoDTO.getNumber(),
+        cardInfoDTO.getHolder(),
+        cardInfoDTO.getExpirationDate()
+    );
 
     CardInfo updatedCard = cardInfoRepository.findById(id)
         .orElseThrow(() -> new CardInfoNotFoundException("Card with id " + id + " not found"));
@@ -79,13 +80,8 @@ public class CardInfoService {
   @CacheEvict(value = "CARD_CACHE", key = "#id")
   public void deleteCard(Long id) {
     cardInfoRepository.findById(id)
-        .orElseThrow(() -> new CardInfoNotFoundException(
-            "Failed to delete card info with id " + id + " because " + " card not found"));
-
-    int deletedRows = cardInfoRepository.deleteCardInfoByIdNative(id);
-    if (deletedRows == 0) {
-      throw new CardInfoNotFoundException("Failed to delete card with id " + id);
-    }
+        .orElseThrow(() -> new CardInfoNotFoundException("Card with id " + id + " not found"));
+    cardInfoRepository.deleteCardInfoByIdNative(id);
   }
 
 

@@ -19,7 +19,7 @@ public class CardInfoDTO {
   private Long userId;
 
   @NotBlank
-  @Pattern(regexp = "\\D{5}$")
+  @Pattern(regexp = "\\d{5}$")
   private String number;
 
   @NotBlank
