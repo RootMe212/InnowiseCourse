@@ -68,12 +68,12 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           mvn -B clean verify sonar:sonar --file userservice/pom.xml
-          -Dsonar.projectKey=innowise-user-service \
-          -Dsonar.organization=KirylSamkov \ 
-          -Dsonar.host.url = https://sonarcloud.io \
-          -Dsonar.sources=src/main/java \ 
-          -Dsonar.tests=src/test/java \ 
-          -Dsonar.java.binaries=target/classes
+            -Dsonar.projectKey=innowise-user-service \
+            -Dsonar.organization=KirylSamkov \ 
+            -Dsonar.host.url = https://sonarcloud.io \
+            -Dsonar.sources=src/main/java \ 
+            -Dsonar.tests=src/test/java \ 
+            -Dsonar.java.binaries=target/classes
 
   artifact-creation:
     runs-on: ubuntu-latest
