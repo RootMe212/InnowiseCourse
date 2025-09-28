@@ -19,7 +19,6 @@
 
   <properties>
     <java.version>17</java.version>
-    <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
   </properties>
   <packaging>jar</packaging>
   <dependencies>
@@ -153,6 +152,7 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
+        <version>5.2.0.4988</version>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
