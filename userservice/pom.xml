@@ -19,7 +19,7 @@
 
   <properties>
     <java.version>17</java.version>
-    <sonar-maven-plugin.version>3.11.0.3602</sonar-maven-plugin.version>
+    <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
   </properties>
   <packaging>jar</packaging>
   <dependencies>
@@ -151,9 +151,8 @@
     <finalName>user-service</finalName>
     <plugins>
       <plugin>
-          <groupId>org.sonarsource.sonarqube</groupId>
-          <artifactId>sonar-plugin-api</artifactId>
-          <version>9.3.0.51899</version>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
