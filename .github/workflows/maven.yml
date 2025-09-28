@@ -79,7 +79,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar --file userservice/pom.xml
+        run: mvn -B clean verify sonar:sonar --file userservice/pom.xml
 
   artifact-creation:
     runs-on: ubuntu-latest
