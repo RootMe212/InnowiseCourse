@@ -67,7 +67,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          mvn -B clean verify sonar:sonar --file userservice/pom.xml
+          mvn -B clean verify sonar:sonar --file userservice/pom.xml \
             -Dsonar.projectKey=innowise-user-service \
             -Dsonar.organization=KirylSamkov \ 
             -Dsonar.host.url = https://sonarcloud.io \
