@@ -128,12 +128,14 @@
       <scope>test</scope>
     </dependency>
 
+
     <!-- H2 (optional if you rely solely on Testcontainers DB) -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
+
 
     <!-- Testcontainers JDBC helper -->
     <dependency>
@@ -146,6 +148,10 @@
   <build>
     <finalName>user-service</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
