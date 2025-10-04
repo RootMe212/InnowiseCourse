@@ -5,7 +5,7 @@ import com.innowisekir.userservice.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {CardInfoMapper.class})
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
   UserDTO toDTO(User user);

@@ -4,13 +4,6 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.5</version>
-    <relativePath/>
-  </parent>
-
   <groupId>com.innowisekir</groupId>
   <artifactId>userservice</artifactId>
   <version>0.0.1-SNAPSHOT</version>
@@ -19,8 +12,51 @@
 
   <properties>
     <java.version>17</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Spring Boot version -->
+    <spring-boot.version>3.3.5</spring-boot.version>
+
+    <!-- Database versions -->
+    <postgresql.version>42.7.7</postgresql.version>
+
+    <!-- Lombok version -->
+    <lombok.version>1.18.40</lombok.version>
+    <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+
+    <!-- MapStruct version -->
+    <mapstruct.version>1.6.3</mapstruct.version>
+
+    <!-- Testcontainers version -->
+    <testcontainers.version>1.21.3</testcontainers.version>
+
+    <!-- Maven plugins versions -->
+    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.3.1</maven-surefire-plugin.version>
+    <sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
   </properties>
-  <packaging>jar</packaging>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -40,7 +76,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.7</version>
+      <version>${postgresql.version}</version>
     </dependency>
 
     <dependency>
@@ -51,7 +87,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.40</version>
+      <version>${lombok.version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -84,12 +120,13 @@
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
-      <version>1.6.3</version>
+      <version>${mapstruct.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct-processor</artifactId>
-      <version>1.6.3</version>
+      <version>${mapstruct.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Redis & Cache -->
@@ -106,7 +143,6 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.21.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -128,15 +164,12 @@
       <scope>test</scope>
     </dependency>
 
-
     <!-- H2 (optional if you rely solely on Testcontainers DB) -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
-
-
 
     <!-- Testcontainers JDBC helper -->
     <dependency>
@@ -152,11 +185,12 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
-        <version>5.2.0.4988</version>
+        <version>${sonar-maven-plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
         <configuration>
           <excludes>
             <exclude>
@@ -169,28 +203,35 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <source>17</source>
-          <target>17</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <parameters>true</parameters>
           <annotationProcessorPaths>
             <path>
               <groupId>org.mapstruct</groupId>
               <artifactId>mapstruct-processor</artifactId>
-              <version>1.6.3</version>
+              <version>${mapstruct.version}</version>
             </path>
             <path>
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok</artifactId>
-              <version>1.18.40</version>
+              <version>${lombok.version}</version>
             </path>
             <path>
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok-mapstruct-binding</artifactId>
-              <version>0.2.0</version>
+              <version>${lombok-mapstruct-binding.version}</version>
             </path>
           </annotationProcessorPaths>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+
       </plugin>
     </plugins>
   </build>

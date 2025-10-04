@@ -5,7 +5,6 @@ import com.innowisekir.userservice.service.CardInfoService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,11 +23,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/cards")
+@RequestMapping("/api/v1/cards")
 public class CardInfoController {
 
-  @Autowired
-  CardInfoService cardInfoService;
+  private final CardInfoService cardInfoService;
+
+  public CardInfoController(CardInfoService cardInfoService) {
+    this.cardInfoService = cardInfoService;
+  }
 
 
   @PostMapping

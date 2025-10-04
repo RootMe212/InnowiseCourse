@@ -2,6 +2,7 @@ package com.innowisekir.userservice.mapper;
 
 import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.entity.CardInfo;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -18,5 +19,8 @@ public interface CardInfoMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "user", ignore = true)
   CardInfo toEntityForUpdate(CardInfoDTO cardInfoDTO);
+
+  List<CardInfoDTO> toDTOList(List<CardInfo> cardInfoList);
+
 
 }

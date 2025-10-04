@@ -1,5 +1,10 @@
-package com.innowisekir.userservice.exception;
+package com.innowisekir.userservice.controller;
 
+import com.innowisekir.userservice.exception.CardInfoNotFoundException;
+import com.innowisekir.userservice.exception.EntityAlreadyDeletedException;
+import com.innowisekir.userservice.exception.InvalidEmailException;
+import com.innowisekir.userservice.exception.UserNotFoundException;
+import com.innowisekir.userservice.exception.ValidationException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +47,14 @@ public class GlobalExceptionHandler {
   ) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .body(Map.of(ERROR_KEY, "Card not found", MESSAGE_KEY, exception.getMessage()));
+  }
+
+  @ExceptionHandler(EntityAlreadyDeletedException.class)
+  public ResponseEntity<Map<String, String>> entityAlreadyDeletedException(
+      EntityAlreadyDeletedException exception
+  ) {
+    return ResponseEntity.status(HttpStatus.GONE)
+        .body(Map.of(ERROR_KEY, "Entity already deleted", MESSAGE_KEY, exception.getMessage()));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

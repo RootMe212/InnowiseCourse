@@ -1,50 +1,41 @@
 package com.integration;
 
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.innowisekir.userservice.dto.CardInfoDTO;
 import com.innowisekir.userservice.dto.UserDTO;
 import com.innowisekir.userservice.entity.CardInfo;
 import com.innowisekir.userservice.entity.User;
+import com.innowisekir.userservice.exception.CardInfoNotFoundException;
+import com.innowisekir.userservice.exception.EntityAlreadyDeletedException;
+import com.innowisekir.userservice.exception.UserNotFoundException;
 import com.innowisekir.userservice.repository.CardInfoRepository;
 import com.innowisekir.userservice.repository.UserRepository;
+import com.innowisekir.userservice.service.CardInfoService;
+import com.innowisekir.userservice.service.UserService;
 import java.time.LocalDate;
-import java.util.Collections;
-import org.junit.jupiter.api.Assertions;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = com.innowisekir.userservice.UserserviceApplication.class)
+@SpringBootTest(classes = com.innowisekir.userservice.UserserviceApplication.class)
 @Testcontainers
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
 class UserserviceApplicationTest {
 
@@ -62,367 +53,316 @@ class UserserviceApplicationTest {
       .withPassword("test");
 
   @Autowired
-  private UserRepository userRepository;
+  private UserService userService;
 
   @Autowired
-  private CacheManager cacheManager;
+  private CardInfoService cardInfoService;
 
-  @SpyBean
-  UserRepository userRepositorySpy;
+  @Autowired
+  private UserRepository userRepository;
 
   @Autowired
   private CardInfoRepository cardInfoRepository;
 
-  @SpyBean
-  CardInfoRepository cardInfoRepositorySpy;
-
-  private final ObjectMapper mapper = new ObjectMapper();
   @Autowired
-  private MockMvc mockMvc;
+  private CacheManager cacheManager;
+
+  private UserDTO testUserDTO;
+  private CardInfoDTO testCardDTO;
 
   @BeforeEach
   void setUp() {
-    mapper.registerModule(new JavaTimeModule());
-    userRepository.deleteAll();
     cardInfoRepository.deleteAll();
-    Cache cache = cacheManager.getCache("USER_CACHE");
-    if (cache != null) {
-      cache.clear();
+    userRepository.deleteAll();
+
+    clearCache();
+
+    testUserDTO = createTestUserDTO();
+    testCardDTO = createTestCardDTO();
+  }
+
+  private void clearCache() {
+    Cache userCache = cacheManager.getCache("USER_CACHE");
+    if (userCache != null) {
+      userCache.clear();
+    }
+    Cache cardCache = cacheManager.getCache("CARD_CACHE");
+    if (cardCache != null) {
+      cardCache.clear();
     }
   }
 
-  /**
-   * UserTest
-   */
-  @Test
-  void testCreateUserAndCacheIt() throws Exception {
-    UserDTO userDTO = new UserDTO(null,
-        "Kirill",
-        "Samkov",
-        LocalDate.of(2005, 5, 20),
-        "kirill@gmail.com",
-        Collections.emptyList());
+  private UserDTO createTestUserDTO() {
+    UserDTO userDTO = new UserDTO();
+    userDTO.setName("Kirill");
+    userDTO.setSurname("Samkov");
+    userDTO.setEmail("kirill"+ System.currentTimeMillis()+ "@gmail.com");
+    userDTO.setBirthDate(LocalDate.of(2005, 5, 20));
+    return userDTO;
+  }
 
-    MvcResult result = mockMvc.perform(post("/api/users")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(userDTO)))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").isNumber())
-        .andReturn();
-
-    UserDTO createdUserDTO = mapper.readValue(result.getResponse().getContentAsString(),
-        UserDTO.class);
-    Long userId = createdUserDTO.getId();
-
-    Assertions.assertTrue(userRepository.findById(userId).isPresent());
-
-    Cache cache = cacheManager.getCache("USER_CACHE");
-    assertNotNull(cache);
-
-    mockMvc.perform(get("/api/users/" + userId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").isNumber())
-        .andExpect(jsonPath("$.email").isString())
-        .andReturn();
+  private CardInfoDTO createTestCardDTO() {
+    CardInfoDTO cardDTO = new CardInfoDTO();
+    cardDTO.setNumber("11111");
+    cardDTO.setHolder("Kirill Samkov");
+    cardDTO.setExpirationDate(LocalDate.of(2025, 12, 31));
+    // НЕ устанавливаем userId здесь - он будет установлен в каждом тесте отдельно
+    return cardDTO;
   }
 
   @Test
-  void testGetUserByIdAndVerifyCache() throws Exception {
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    userRepository.save(user);
+  @DisplayName("Should create user successfully with real database")
+  void shouldCreateUserSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
 
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/users/" + user.getId()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(user.getId()))
-        .andExpect(jsonPath("$.email").value(user.getEmail()));
+    assertNotNull(createdUser);
+    assertNotNull(createdUser.getId());
+    assertEquals(testUserDTO.getName(), createdUser.getName());
+    assertEquals(testUserDTO.getEmail(), createdUser.getEmail());
 
-    Mockito.verify(userRepositorySpy, Mockito.times(1)).findById(user.getId());
-
-    Mockito.clearInvocations(userRepositorySpy);
-
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/users/" + user.getId()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(user.getId()))
-        .andExpect(jsonPath("$.email").value(user.getEmail()));
-
-    Mockito.verify(userRepositorySpy, Mockito.times(0)).findById(user.getId());
+    User savedUser = userRepository.findById(createdUser.getId()).orElse(null);
+    assertNotNull(savedUser);
+    assertEquals(testUserDTO.getName(), savedUser.getName());
+    assertEquals(testUserDTO.getEmail(), savedUser.getEmail());
   }
 
   @Test
-  void testGetUserByEmail() throws Exception {
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    user = userRepository.save(user);
+  @DisplayName("Should get user by id with caching")
+  void shouldGetUserByIdWithCaching() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    Long userId = createdUser.getId();
 
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/users/email")
-            .param("email", "kirill@gmail.com"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(user.getId()))
-        .andExpect(jsonPath("$.email").value(user.getEmail()));
+    UserDTO retrievedUser1 = userService.getUserById(userId);
+
+    assertNotNull(retrievedUser1);
+    assertEquals(createdUser.getId(), retrievedUser1.getId());
+    assertEquals(createdUser.getName(), retrievedUser1.getName());
+
+    Cache userCache = cacheManager.getCache("USER_CACHE");
+    assertNotNull(userCache);
+    UserDTO cachedUser = userCache.get(userId, UserDTO.class);
+    assertNotNull(cachedUser);
+    assertEquals(createdUser.getName(), cachedUser.getName());
   }
 
   @Test
-  void testGetUsersByIds() throws Exception {
-    User user1 = new User();
-    user1.setName("User1");
-    user1.setSurname("Surname1");
-    user1.setBirthDate(LocalDate.of(2000, 1, 1));
-    user1.setEmail("user1@gmail.com");
-    user1 = userRepository.save(user1);
-
-    User user2 = new User();
-    user2.setName("User2");
-    user2.setSurname("Surname2");
-    user2.setBirthDate(LocalDate.of(2000, 1, 1));
-    user2.setEmail("user2@gmail.com");
-    user2 = userRepository.save(user2);
-
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/users/ids")
-            .param("ids", user1.getId().toString(), user2.getId().toString()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].id").value(user1.getId()))
-        .andExpect(jsonPath("$[1].id").value(user2.getId()));
+  @DisplayName("Should throw UserNotFoundException when user not found")
+  void shouldThrowUserNotFoundExceptionWhenUserNotFound() {
+    assertThrows(UserNotFoundException.class, () -> userService.getUserById(999L));
   }
 
   @Test
+  @DisplayName("Should get users by ids successfully")
+  void shouldGetUsersByIdsSuccessfully() {
+    UserDTO user1 = userService.createUser(testUserDTO);
+
+    UserDTO user2DTO = new UserDTO();
+    user2DTO.setName("Bob");
+    user2DTO.setSurname("Smith");
+    user2DTO.setEmail("bob@gmail.com");
+    user2DTO.setBirthDate(LocalDate.of(2000, 1, 1));
+    UserDTO user2 = userService.createUser(user2DTO);
+
+    List<UserDTO> users = userService.getUsersByIds(List.of(user1.getId(), user2.getId()));
+
+    assertThat(users).hasSize(2);
+    assertThat(users).extracting(UserDTO::getId).contains(user1.getId(), user2.getId());
+  }
+
+  @Test
+  @DisplayName("Should get user by email successfully")
+  void shouldGetUserByEmailSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+
+    UserDTO retrievedUser = userService.getUserByEmail(createdUser.getEmail());
+
+    assertNotNull(retrievedUser);
+    assertEquals(createdUser.getId(), retrievedUser.getId());
+    assertEquals(createdUser.getEmail(), retrievedUser.getEmail());
+  }
+
+  @Test
+  @DisplayName("Should update user successfully")
   @Transactional
-  void testUpdateUser() throws Exception {
-    User user = new User();
-    user.setName("Max");
-    user.setSurname("Chills");
-    user.setBirthDate(LocalDate.of(2000, 1, 1));
-    user.setEmail("max@gmail.com");
-    user = userRepository.save(user);
+  void shouldUpdateUserSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    Long userId = createdUser.getId();
 
-    UserDTO updatedUserDTO = new UserDTO(user.getId(),
-        "Updated name",
-        "Updated surname",
-        user.getBirthDate(),
-        "updatedname@gmail.com",
-        Collections.emptyList());
+    UserDTO updateDTO = new UserDTO();
+    updateDTO.setId(userId);
+    updateDTO.setName("Updated Name");
+    updateDTO.setSurname("Updated Surname");
+    updateDTO.setEmail("updated@gmail.com");
+    updateDTO.setBirthDate(LocalDate.of(2000, 1, 1));
 
-    mockMvc.perform(MockMvcRequestBuilders.put("/api/users/" + user.getId())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(updatedUserDTO)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(user.getId()))
-        .andExpect(jsonPath("$.name").value("Updated name"))
-        .andExpect(jsonPath("$.email").value("updatedname@gmail.com"));
+    UserDTO updatedUser = userService.updateUser(userId, updateDTO);
 
-    Cache cache = cacheManager.getCache("USER_CACHE");
-    assertNotNull(cache);
-    UserDTO cachedUserDTO = cache.get(user.getId(), UserDTO.class);
-    assertNotNull(cachedUserDTO);
-    Assertions.assertEquals("Updated name", cachedUserDTO.getName());
-    Assertions.assertEquals("updatedname@gmail.com", cachedUserDTO.getEmail());
+    assertNotNull(updatedUser);
+    assertEquals("Updated Name", updatedUser.getName());
+    assertEquals("updated@gmail.com", updatedUser.getEmail());
+
+    User savedUser = userRepository.findById(userId).orElse(null);
+    assertNotNull(savedUser);
+    assertEquals("Updated Name", savedUser.getName());
+    assertEquals("updated@gmail.com", savedUser.getEmail());
   }
 
   @Test
+  @DisplayName("Should delete user successfully")
   @Transactional
-  void testDeleteUser() throws Exception {
-    User user = new User();
-    user.setName("Max");
-    user.setSurname("surname");
-    user.setBirthDate(LocalDate.of(2001, 1, 1));
-    user.setEmail("max@gmail.com");
-    user = userRepository.save(user);
+  void shouldDeleteUserSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    Long userId = createdUser.getId();
 
-    mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/" + user.getId()))
-        .andExpect(status().isNoContent());
+    userService.deleteUser(userId);
 
-    assertFalse(userRepository.findById(user.getId()).isPresent());
+    assertThat(userRepository.findById(userId)).isEmpty();
 
-    Cache cache = cacheManager.getCache("USER_CACHE");
-    assertNotNull(cache);
-    Assertions.assertNull(cache.get(user.getId()));
-  }
-
-  /**
-   * CardInfoTest
-   */
-
-  @Test
-  void testCreateCardAndCacheIt() throws Exception {
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    user = userRepository.save(user);
-
-    CardInfoDTO cardDTO = new CardInfoDTO(
-        null,
-        user.getId(),
-        "11111",
-        "Kirill Samkov",
-        LocalDate.of(2025, 12, 31)
-    );
-
-    MvcResult result = mockMvc.perform(post("/api/cards")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(cardDTO)))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").isNumber())
-        .andReturn();
-
-    CardInfoDTO createdCardDTO = mapper.readValue(result.getResponse().getContentAsString(),
-        CardInfoDTO.class);
-    Long cardId = createdCardDTO.getId();
-
-    Assertions.assertTrue(cardInfoRepository.findById(cardId).isPresent());
-
-    Cache cache = cacheManager.getCache("CARD_CACHE");
-    assertNotNull(cache);
-
-    mockMvc.perform(get("/api/cards/" + cardId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").isNumber())
-        .andExpect(jsonPath("$.number").isString())
-        .andReturn();
+    Cache userCache = cacheManager.getCache("USER_CACHE");
+    assertNotNull(userCache);
+    assertThat(userCache.get(userId)).isNull();
   }
 
   @Test
-  void testGetCardByIdAndVerifyCache() throws Exception {
-    // Сначала создаем пользователя
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    user = userRepository.save(user);
-
-    CardInfo card = new CardInfo();
-    card.setUser(user);
-    card.setNumber("12345");
-    card.setHolder("Kirill Samkov");
-    card.setExpirationDate(LocalDate.of(2025, 12, 31));
-    card = cardInfoRepository.save(card);
-
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/cards/" + card.getId()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(card.getId()))
-        .andExpect(jsonPath("$.number").value(card.getNumber()));
-
-    Mockito.verify(cardInfoRepositorySpy, Mockito.times(1)).findById(card.getId());
-
-    Mockito.clearInvocations(cardInfoRepositorySpy);
-
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/cards/" + card.getId()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(card.getId()))
-        .andExpect(jsonPath("$.number").value(card.getNumber()));
-
-    Mockito.verify(cardInfoRepositorySpy, Mockito.times(0)).findById(card.getId());
+  @DisplayName("Should throw EntityAlreadyDeletedException when deleting non-existent user")
+  void shouldThrowEntityAlreadyDeletedExceptionWhenDeletingNonExistentUser() {
+    assertThrows(EntityAlreadyDeletedException.class, () -> userService.deleteUser(999L));
   }
 
   @Test
-  void testGetCardsByIds() throws Exception {
-    // Сначала создаем пользователя
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    user = userRepository.save(user);
+  @DisplayName("Should create card successfully with real database")
+  void shouldCreateCardSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    testCardDTO.setUserId(createdUser.getId());
 
-    CardInfo card1 = new CardInfo();
-    card1.setUser(user);
-    card1.setNumber("12345");
-    card1.setHolder("Kirill Samkov");
-    card1.setExpirationDate(LocalDate.of(2025, 12, 31));
-    card1 = cardInfoRepository.save(card1);
+    CardInfoDTO createdCard = cardInfoService.createCard(testCardDTO);
 
-    CardInfo card2 = new CardInfo();
-    card2.setUser(user);
-    card2.setNumber("67890");
-    card2.setHolder("Kirill Samkov");
-    card2.setExpirationDate(LocalDate.of(2026, 6, 30));
-    card2 = cardInfoRepository.save(card2);
+    assertNotNull(createdCard);
+    assertNotNull(createdCard.getId());
+    assertEquals(testCardDTO.getNumber(), createdCard.getNumber());
+    assertEquals(createdUser.getId(), createdCard.getUserId());
 
-    mockMvc.perform(MockMvcRequestBuilders.get("/api/cards/ids")
-            .param("ids", card1.getId().toString(), card2.getId().toString()))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].id").value(card1.getId()))
-        .andExpect(jsonPath("$[1].id").value(card2.getId()));
+    CardInfo savedCard = cardInfoRepository.findById(createdCard.getId()).orElse(null);
+    assertNotNull(savedCard);
+    assertEquals(testCardDTO.getNumber(), savedCard.getNumber());
+    assertEquals(createdUser.getId(), savedCard.getUser().getId());
   }
 
   @Test
-  void testUpdateCard() throws Exception {
-    // Сначала создаем пользователя
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    user = userRepository.save(user);
+  @DisplayName("Should get card by id with caching")
+  void shouldGetCardByIdWithCaching() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    testCardDTO.setUserId(createdUser.getId());
+    CardInfoDTO createdCard = cardInfoService.createCard(testCardDTO);
+    Long cardId = createdCard.getId();
 
-    CardInfo card = new CardInfo();
-    card.setUser(user);
-    card.setNumber("12345");
-    card.setHolder("Kirill Samkov");
-    card.setExpirationDate(LocalDate.of(2025, 12, 31));
-    card = cardInfoRepository.save(card);
+    CardInfoDTO retrievedCard1 = cardInfoService.getCardById(cardId);
 
-    CardInfoDTO updatedCardDTO = new CardInfoDTO(
-        card.getId(),
-        user.getId(),
-        "54321",
-        "Kirill Samkov",
-        LocalDate.of(2026, 1, 1)
-    );
+    assertNotNull(retrievedCard1);
+    assertEquals(createdCard.getId(), retrievedCard1.getId());
+    assertEquals(createdCard.getNumber(), retrievedCard1.getNumber());
 
-    mockMvc.perform(MockMvcRequestBuilders.put("/api/cards/" + card.getId())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(updatedCardDTO)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(card.getId()))
-        .andExpect(jsonPath("$.number").value("54321"))
-        .andExpect(jsonPath("$.expirationDate").value("2026-01-01")) // ← Проверяем дату
-        .andExpect(jsonPath("$.userId").value(user.getId()));
-
-    Cache cache = cacheManager.getCache("CARD_CACHE");
-    assertNotNull(cache);
-    CardInfoDTO cachedCardDTO = cache.get(card.getId(), CardInfoDTO.class);
-    assertNotNull(cachedCardDTO);
-    Assertions.assertEquals("54321", cachedCardDTO.getNumber());
-    Assertions.assertEquals(LocalDate.of(2026, 1, 1),
-        cachedCardDTO.getExpirationDate()); // ← Проверяем дату
-    Assertions.assertEquals(user.getId(), cachedCardDTO.getUserId());
+    Cache cardCache = cacheManager.getCache("CARD_CACHE");
+    assertNotNull(cardCache);
+    CardInfoDTO cachedCard = cardCache.get(cardId, CardInfoDTO.class);
+    assertNotNull(cachedCard);
+    assertEquals(createdCard.getNumber(), cachedCard.getNumber());
   }
 
   @Test
-  void testDeleteCard() throws Exception {
-    // Сначала создаем пользователя
-    User user = new User();
-    user.setName("Kirill");
-    user.setSurname("Samkov");
-    user.setBirthDate(LocalDate.of(2005, 5, 20));
-    user.setEmail("kirill@gmail.com");
-    user = userRepository.save(user);
+  @DisplayName("Should throw CardInfoNotFoundException when card not found")
+  void shouldThrowCardInfoNotFoundExceptionWhenCardNotFound() {
+    assertThrows(CardInfoNotFoundException.class, () -> cardInfoService.getCardById(999L));
+  }
 
-    CardInfo card = new CardInfo();
-    card.setUser(user);
-    card.setNumber("12345");
-    card.setHolder("Kirill Samkov");
-    card.setExpirationDate(LocalDate.of(2025, 12, 31));
-    card = cardInfoRepository.save(card);
+  @Test
+  @DisplayName("Should get cards by ids successfully")
+  void shouldGetCardsByIdsSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
 
-    mockMvc.perform(MockMvcRequestBuilders.delete("/api/cards/" + card.getId()))
-        .andExpect(status().isNoContent());
+    testCardDTO.setUserId(createdUser.getId());
+    CardInfoDTO card1 = cardInfoService.createCard(testCardDTO);
 
-    assertFalse(cardInfoRepository.findById(card.getId()).isPresent());
+    CardInfoDTO card2DTO = new CardInfoDTO();
+    card2DTO.setUserId(createdUser.getId());
+    card2DTO.setNumber("22222");
+    card2DTO.setHolder("Kirill Samkov");
+    card2DTO.setExpirationDate(LocalDate.of(2026, 6, 30));
+    CardInfoDTO card2 = cardInfoService.createCard(card2DTO);
 
-    Cache cache = cacheManager.getCache("CARD_CACHE");
-    assertNotNull(cache);
-    Assertions.assertNull(cache.get(card.getId()));
+    List<CardInfoDTO> cards = cardInfoService.getCardsByIds(List.of(card1.getId(), card2.getId()));
+
+    assertThat(cards).hasSize(2);
+    assertThat(cards).extracting(CardInfoDTO::getId).contains(card1.getId(), card2.getId());
+  }
+
+  @Test
+  @DisplayName("Should update card successfully")
+  @Transactional
+  void shouldUpdateCardSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    testCardDTO.setUserId(createdUser.getId());
+    CardInfoDTO createdCard = cardInfoService.createCard(testCardDTO);
+    Long cardId = createdCard.getId();
+
+    CardInfoDTO updateDTO = new CardInfoDTO();
+    updateDTO.setId(cardId);
+    updateDTO.setUserId(createdUser.getId());
+    updateDTO.setNumber("54321");
+    updateDTO.setExpirationDate(LocalDate.of(2026, 1, 1));
+
+    CardInfoDTO updatedCard = cardInfoService.updateCardInfo(updateDTO, cardId);
+
+    assertNotNull(updatedCard);
+    assertEquals("54321", updatedCard.getNumber());
+    assertEquals(LocalDate.of(2026, 1, 1), updatedCard.getExpirationDate());
+
+    CardInfo savedCard = cardInfoRepository.findById(cardId).orElse(null);
+    assertNotNull(savedCard);
+    assertEquals("54321", savedCard.getNumber());
+    assertEquals(LocalDate.of(2026, 1, 1), savedCard.getExpirationDate());
+  }
+
+  @Test
+  @DisplayName("Should delete card successfully")
+
+  void shouldDeleteCardSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    testCardDTO.setUserId(createdUser.getId());
+    CardInfoDTO createdCard = cardInfoService.createCard(testCardDTO);
+    Long cardId = createdCard.getId();
+
+    cardInfoService.deleteCard(cardId);
+
+    assertThat(cardInfoRepository.findById(cardId)).isEmpty();
+
+    Cache cardCache = cacheManager.getCache("CARD_CACHE");
+    assertNotNull(cardCache);
+    assertThat(cardCache.get(cardId)).isNull();
+  }
+
+  @Test
+  @DisplayName("Should throw EntityAlreadyDeletedException when deleting non-existent card")
+  void shouldThrowEntityAlreadyDeletedExceptionWhenDeletingNonExistentCard() {
+    assertThrows(EntityAlreadyDeletedException.class, () -> cardInfoService.deleteCard(999L));
+  }
+
+  @Test
+  @DisplayName("Should create card with user relationship successfully")
+  @Transactional
+  void shouldCreateCardWithUserRelationshipSuccessfully() {
+    UserDTO createdUser = userService.createUser(testUserDTO);
+    testCardDTO.setUserId(createdUser.getId());
+
+    CardInfoDTO createdCard = cardInfoService.createCard(testCardDTO);
+
+    assertNotNull(createdCard);
+    assertEquals(createdUser.getId(), createdCard.getUserId());
+
+    CardInfo savedCard = cardInfoRepository.findById(createdCard.getId()).orElse(null);
+    assertNotNull(savedCard);
+    assertNotNull(savedCard.getUser());
+    assertEquals(createdUser.getId(), savedCard.getUser().getId());
+    assertEquals(createdUser.getName(), savedCard.getUser().getName());
   }
 }

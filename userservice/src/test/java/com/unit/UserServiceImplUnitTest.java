@@ -16,15 +16,16 @@ import com.innowisekir.userservice.dto.UserDTO;
 import com.innowisekir.userservice.entity.CardInfo;
 import com.innowisekir.userservice.entity.User;
 import com.innowisekir.userservice.exception.UserNotFoundException;
-import com.innowisekir.userservice.mapper.CardInfoListMapper;
+import com.innowisekir.userservice.mapper.CardInfoMapper;
 import com.innowisekir.userservice.mapper.UserMapper;
 import com.innowisekir.userservice.repository.UserRepository;
-import com.innowisekir.userservice.service.UserService;
+import com.innowisekir.userservice.service.UserServiceImpl;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,10 +33,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceUnitTest {
+class UserServiceImplUnitTest {
 
   @InjectMocks
-  private UserService userService;
+  private UserServiceImpl userServiceImpl;
 
   @Mock
   private UserRepository userRepository;
@@ -44,7 +45,7 @@ class UserServiceUnitTest {
   private UserMapper userMapper;
 
   @Mock
-  private CardInfoListMapper cardInfoListMapper;
+  private CardInfoMapper cardInfoMapper;
 
   private User testUser;
   private UserDTO testUserDTO;
@@ -86,13 +87,14 @@ class UserServiceUnitTest {
   }
 
   @Test
+  @DisplayName("Should create user successfully")
   void createUser() {
     when(userMapper.toEntity(testUserDTO)).thenReturn(testUser);
     when(userRepository.save(testUser)).thenReturn(testUser);
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
-    when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
+    when(cardInfoMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
 
-    UserDTO resultUser = userService.createUser(testUserDTO);
+    UserDTO resultUser = userServiceImpl.createUser(testUserDTO);
 
     assertNotNull(resultUser);
     assertEquals(testUserDTO.getId(), resultUser.getId());
@@ -104,12 +106,13 @@ class UserServiceUnitTest {
   }
 
   @Test
+  @DisplayName("Should return user when found by id")
   void getUserByIdFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.ofNullable(testUser));
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
-    when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
+    when(cardInfoMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
 
-    UserDTO resultUser = userService.getUserById(1L);
+    UserDTO resultUser = userServiceImpl.getUserById(1L);
 
     assertNotNull(resultUser);
     assertEquals(testUserDTO.getId(), resultUser.getId());
@@ -120,15 +123,17 @@ class UserServiceUnitTest {
   }
 
   @Test
+  @DisplayName("Should throw UserNotFoundException when user not found by id")
   void getUserByIdNotFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-    assertThrows(UserNotFoundException.class, () -> userService.getUserById(1L));
+    assertThrows(UserNotFoundException.class, () -> userServiceImpl.getUserById(1L));
     verify(userRepository).findById(1L);
   }
 
 
   @Test
+  @DisplayName("Should return list of users when found by ids")
   void getUsersByIds() {
     List<Long> ids = Arrays.asList(1L, 2L);
     User testUser2 = new User();
@@ -148,9 +153,9 @@ class UserServiceUnitTest {
     when(userRepository.findByIdIn(ids)).thenReturn(Arrays.asList(testUser, testUser2));
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
     when(userMapper.toDTO(testUser2)).thenReturn(testUserDTO2);
-    when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
+    when(cardInfoMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
 
-    List<UserDTO> resultUsers = userService.getUsersByIds(ids);
+    List<UserDTO> resultUsers = userServiceImpl.getUsersByIds(ids);
 
     assertNotNull(resultUsers);
     assertEquals(2, resultUsers.size());
@@ -159,32 +164,34 @@ class UserServiceUnitTest {
     verify(userRepository).findByIdIn(ids);
     verify(userMapper).toDTO(testUser);
     verify(userMapper).toDTO(testUser2);
-    verify(cardInfoListMapper).toDTOList(testUser.getCards());
+    verify(cardInfoMapper).toDTOList(testUser.getCards());
 
   }
 
 
   @Test
+  @DisplayName("Should return user when found by email")
   void getUserByEmail() {
     when(userRepository.findByEmail("kirill@gmail.com")).thenReturn(Optional.ofNullable(testUser));
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
-    when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
+    when(cardInfoMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
 
-    UserDTO resultUser = userService.getUserByEmail("kirill@gmail.com");
+    UserDTO resultUser = userServiceImpl.getUserByEmail("kirill@gmail.com");
     assertNotNull(resultUser);
     assertEquals(testUserDTO.getEmail(), resultUser.getEmail());
     verify(userRepository).findByEmail("kirill@gmail.com");
   }
 
   @Test
+  @DisplayName("Should update user information successfully")
   void updateUser() {
     when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
     when(userRepository.updateUserById(anyLong(), any(), any(), any(), any())).thenReturn(1);
     when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
     when(userMapper.toDTO(testUser)).thenReturn(testUserDTO);
-    when(cardInfoListMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
+    when(cardInfoMapper.toDTOList(testUser.getCards())).thenReturn(Arrays.asList(testCardDTO));
 
-    UserDTO resultUser = userService.updateUser(1L, testUserDTO);
+    UserDTO resultUser = userServiceImpl.updateUser(1L, testUserDTO);
 
     assertThat(resultUser).isNotNull();
     assertThat(resultUser.getName()).isEqualTo("Kirill");
@@ -195,11 +202,14 @@ class UserServiceUnitTest {
   }
 
   @Test
+  @DisplayName("Should delete user successfully when user exists")
   void deleteUser() {
-    when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+    when(userRepository.existsById(1L)).thenReturn(true);
     when(userRepository.deleteUserByIdNative(1L)).thenReturn(1);
 
-    userService.deleteUser(1L);
+    userServiceImpl.deleteUser(1L);
+
+    verify(userRepository).existsById(1L);
     verify(userRepository, times(1)).deleteUserByIdNative(1L);
   }
 }
