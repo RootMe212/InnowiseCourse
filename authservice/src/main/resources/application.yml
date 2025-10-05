@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/authservice_db
+    username: postgres
+    password: 1234567
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/change-master.xml
+    enabled: true
+
+  security:
+    jwt:
+      secret: mySecretInn123456789012345678901234567890
+      access-token-expiration: 900000  # 15 minutes
+      refresh-token-expiration: 604800000  # 7 days
+
+server:
+  port: 8081

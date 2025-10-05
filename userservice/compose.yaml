@@ -15,12 +15,13 @@ services:
     ports:
       - "5433:5432"
 
+
   userservice:
     build:
       context: .
     container_name: userservice_app
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - redis
       - postgres
@@ -28,6 +29,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userservice_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 1234567
-
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+
