@@ -49,7 +49,10 @@ public class UserController {
     List<UserDTO> users = userService.getUsersByIds(ids);
     return ResponseEntity.ok(users);
   }
-
+  @GetMapping("/{id}/exists")
+  public ResponseEntity<Boolean> userExists(@PathVariable Long id) {
+    return ResponseEntity.ok(userService.existsById(id));
+  }
   @GetMapping("/email")
   public ResponseEntity<UserDTO> getUserByEmail(@RequestParam("email") String email) {
     UserDTO user = userService.getUserByEmail(email);
