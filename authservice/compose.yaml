@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  auth-db:
+    image: postgres:15
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: authservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234567
+    ports:
+      - "5434:5432"
+
+
+  auth-service:
+    build: .
+    container_name: authentication-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/authservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234567
+      USER_SERVICE_URL: http://user-service:8080
+      SPRING_SECURITY_JWT_SECRET: ${SPRING_SECURITY_JWT_SECRET}
+      SPRING_SECURITY_JWT_ACCESS_TTL: ${SPRING_SECURITY_JWT_ACCESS_TTL:-900000}
+      SPRING_SECURITY_JWT_REFRESH_TTL: ${SPRING_SECURITY_JWT_REFRESH_TTL:-604800000}
+    depends_on:
+      - auth-db
+

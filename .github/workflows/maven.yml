@@ -1,4 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+  # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
 # This workflow uses actions that are not certified by GitHub.
@@ -70,7 +70,7 @@ jobs:
         run: |
           mvn -B clean verify sonar:sonar --file userservice/pom.xml \
             -Dsonar.projectKey=RootMe212_InnowiseCourse \
-            -Dsonar.organization=rootme212 \ 
+            -Dsonar.organization=rootme212 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=src/main/java \ 
             -Dsonar.tests=src/test/java \ 
@@ -93,7 +93,7 @@ jobs:
         run: mvn clean package -B -DskipTests --file userservice/pom.xml
 
       - name: set up docker build
-        uses: actions/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

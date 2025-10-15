@@ -1,0 +1,91 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.spotbugs' version '6.0.7'
+}
+
+group = 'com.innowiseKir'
+version = '0.0.1-SNAPSHOT'
+description = 'orderservice'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+ext {
+	mapstructVersion = '1.5.5.Final'
+	openfeignVersion = '4.1.0'
+	testcontainersVersion = '1.19.3'
+	wiremockVersion = '3.0.1'
+	springCloudVersion = '2024.0.0'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.liquibase:liquibase-core'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+
+
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+	testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
+	testImplementation "com.github.tomakehurst:wiremock-standalone:${wiremockVersion}"
+	testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner"
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+}
+
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+spotbugs {
+	effort = 'max'
+	reportLevel = 'low'
+	ignoreFailures = true
+}
+
+spotbugsMain {
+	reports {
+		html {
+			enabled = true
+			destination = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+		}
+		xml {
+			enabled = true
+			destination = file("$buildDir/reports/spotbugs/main/spotbugs.xml")
+		}
+	}
+}
