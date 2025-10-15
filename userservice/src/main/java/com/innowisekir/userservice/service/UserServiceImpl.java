@@ -110,6 +110,11 @@ public class UserServiceImpl implements UserService {
     userRepository.deleteUserByIdNative(id);
   }
 
+  @Override
+  public Boolean existsById(Long id) {
+    return userRepository.existsById(id);
+  }
+
   private UserDTO returnUserDTO(User user) {
     UserDTO userDTO = userMapper.toDTO(user);
     if (userDTO.getCards() != null) {

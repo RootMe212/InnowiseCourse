@@ -5,6 +5,10 @@ spring:
     password: 1234567
     driver-class-name: org.postgresql.Driver
 
+  security:
+    jwt:
+      secret: mySecretInn123456789012345678901234567890
+
   jpa:
     hibernate:
       ddl-auto: validate
