@@ -4,6 +4,8 @@ import com.innowisekir.authservice.exception.InvalidCredentialsException;
 import com.innowisekir.authservice.exception.InvalidTokenException;
 import com.innowisekir.authservice.exception.TokenExpiredException;
 import com.innowisekir.authservice.exception.UserAlreadyExistsException;
+import com.innowisekir.authservice.exception.UserCreationFailedException;
+import com.innowisekir.authservice.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +64,7 @@ public class GlobalExceptionHandler {
       MethodArgumentNotValidException ex) {
     log.error("Validation error: {}", ex.getMessage());
     Map<String, String> errors = new HashMap<>();
-    ex.getBindingResult().getAllErrors().forEach( error -> {
+    ex.getBindingResult().getAllErrors().forEach(error -> {
       String fieldName = ((FieldError) error).getField();
       String errorMessage = error.getDefaultMessage();
       errors.put(fieldName, errorMessage);
@@ -77,5 +79,24 @@ public class GlobalExceptionHandler {
     error.put("error", "INTERNAL_SERVER_ERROR");
     error.put("message", "An unexpected error occurred");
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+  }
+
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+    log.error("User not found: {}", ex.getMessage());
+    Map<String, String> error = new HashMap<>();
+    error.put("error", "USER_NOT_FOUND");
+    error.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+  }
+
+  @ExceptionHandler(UserCreationFailedException.class)
+  public ResponseEntity<Map<String, String>> handleUserCreationFailed(
+      UserCreationFailedException ex) {
+    log.error("User creation failed: {}", ex.getMessage());
+    Map<String, String> error = new HashMap<>();
+    error.put("error", "USER_CREATION_FAILED");
+    error.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
   }
 }

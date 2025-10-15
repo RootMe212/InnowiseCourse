@@ -1,6 +1,7 @@
 package com.innowisekir.authservice.service;
 
-import com.innowisekir.authservice.dto.UserInfo;
+import com.innowisekir.authservice.dto.CreateUserDTO;
+import com.innowisekir.authservice.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,27 +21,21 @@ public class UserServiceClient {
 
   public boolean userExists(Long userId) {
     try {
-      String url = userServiceUrl + "/api/v1/users/" + userId + "/exists";
-      ResponseEntity<Boolean> response = restTemplate.getForEntity(url, Boolean.class);
-      return response.getBody() != null && response.getBody();
+      String url = userServiceUrl + "/api/v1/users/" + userId;
+      ResponseEntity<UserDTO> response = restTemplate.getForEntity(url, UserDTO.class);
+      return response.getStatusCode().is2xxSuccessful() && response.getBody() != null;
     } catch (Exception e) {
       return false;
     }
   }
 
-  public UserInfo getUserInfo(Long userId) {
-    try {
-      String url = userServiceUrl + "/api/v1/users/" + userId;
-      ResponseEntity<UserInfo> response = restTemplate.getForEntity(url, UserInfo.class);
-      return response.getBody();
-    } catch (Exception e) {
-      throw new RuntimeException("User not found");
+  public UserDTO createUser(CreateUserDTO createUserDTO) {
+    String url = userServiceUrl + "/api/v1/users";
+    ResponseEntity<UserDTO> response = restTemplate.postForEntity(url, createUserDTO,
+        UserDTO.class);
+    if (response.getBody() == null || response.getBody().getId() == null) {
+      throw new RuntimeException("User creation failed");
     }
-  }
-
-  public void validateUserForRegistration(Long userId) {
-    if (!userExists(userId)) {
-      throw new RuntimeException("User with ID " + userId + " does not exist in User Service");
-    }
+    return response.getBody();
   }
 }

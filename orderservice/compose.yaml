@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: orderservice-postgres
+    environment:
+      POSTGRES_DB: orderservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234567
+    ports:
+      - "5433:5432"
+
+  orderservice:
+    build:
+      context: .
+    container_name: orderservice_app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orderservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234567
+    depends_on:
+      - postgres
+

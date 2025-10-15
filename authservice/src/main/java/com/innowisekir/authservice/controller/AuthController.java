@@ -4,7 +4,9 @@ import com.innowisekir.authservice.dto.LoginRequest;
 import com.innowisekir.authservice.dto.RefreshTokenRequest;
 import com.innowisekir.authservice.dto.RegisterRequest;
 import com.innowisekir.authservice.dto.TokenResponse;
-import com.innowisekir.authservice.service.AuthService;
+import com.innowisekir.authservice.exception.InvalidTokenException;
+import com.innowisekir.authservice.service.serv.AuthService;
+import com.innowisekir.authservice.service.serv.TokenManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
   private final AuthService authService;
+  private final TokenManagementService tokenManagementService;
 
   @PostMapping("/login")
   public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -26,29 +29,31 @@ public class AuthController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<TokenResponse> register(
-      @Valid @RequestBody RegisterRequest registerRequest) {
+  public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
     TokenResponse response = authService.register(registerRequest);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/refresh")
-  public ResponseEntity<TokenResponse> refreshToken(
-      @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-    TokenResponse response = authService.refreshToken(refreshTokenRequest);
+  public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+    TokenResponse response = tokenManagementService.refreshToken(refreshTokenRequest);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/validate")
   public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
+
+    if (authHeader == null || authHeader.startsWith("Bearer ")) {
+      throw new InvalidTokenException("Invalid authorization header");
+    }
     String token = authHeader.substring(7); // Remove "Bearer " prefix
-    authService.validateToken(token);
+    tokenManagementService.validateToken(token);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-    authService.logout(refreshTokenRequest.getRefreshToken());
+    tokenManagementService.logout(refreshTokenRequest.getRefreshToken());
     return ResponseEntity.ok().build();
   }
 }

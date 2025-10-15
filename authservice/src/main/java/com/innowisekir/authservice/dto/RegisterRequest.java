@@ -1,8 +1,9 @@
 package com.innowisekir.authservice.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import lombok.Data;
 
 @Data
@@ -16,7 +17,15 @@ public class RegisterRequest {
   @Size(min = 8, message = "Password must be at least 8 characters")
   private String password;
 
-  @NotNull(message = "User ID is required")
   private Long userId;
+
+  private String name;
+
+  private String surname;
+
+  private LocalDate birthDate;
+
+  @Email(message = "Invalid email format")
+  private String email;
 
 }
