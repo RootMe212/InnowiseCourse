@@ -49,6 +49,7 @@ public class JwtService {
         .setSubject(subject)
         .setIssuedAt(new Date(System.currentTimeMillis()))
         .setExpiration(new Date(System.currentTimeMillis() + expiration))
+        .setIssuer("innowise-auth")
         .signWith(getSigningKey(), SignatureAlgorithm.HS256)
         .compact();
   }

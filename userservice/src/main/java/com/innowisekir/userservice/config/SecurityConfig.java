@@ -22,7 +22,8 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(a -> a
-            .requestMatchers("/actuator/**", "/api/v1/users/*/exists", "/api/v1/users").permitAll() // ← добавь
+            .requestMatchers("/actuator/**", "/api/v1/users/*/exists", "/api/v1/users").permitAll()
+            .requestMatchers("/api/v1/users").permitAll()
             .anyRequest().authenticated()
         )
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

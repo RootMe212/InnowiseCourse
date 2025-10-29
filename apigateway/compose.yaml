@@ -1,0 +1,110 @@
+services:
+  auth-db:
+    image: postgres:17
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_AUTH}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${AUTH_DB_PORT}:5432"
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+
+  user-db:
+    image: postgres:17
+    container_name: user-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_USER}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${USER_DB_PORT}:5432"
+    volumes:
+      - user-postgres-data:/var/lib/postgresql/data
+
+  order-db:
+    image: postgres:17
+    container_name: order-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB_ORDER}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${ORDER_DB_PORT}:5432"
+    volumes:
+      - order-postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: userservice-redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+
+  authservice:
+    build:
+      context: ../authservice
+    container_name: auth-service
+    ports:
+      - "${AUTH_SERVICE_PORT}:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${POSTGRES_DB_AUTH}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+      SPRING_SECURITY_JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_JWT_ACCESS_TTL: ${JWT_ACCESS_TTL}
+      SPRING_SECURITY_JWT_REFRESH_TTL: ${JWT_REFRESH_TTL}
+    depends_on:
+      - auth-db
+
+  userservice:
+    build:
+      context: ../userservice
+    container_name: userservice_app
+    ports:
+      - "${USER_SERVICE_PORT}:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/${POSTGRES_DB_USER}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT}
+    depends_on:
+      - user-db
+      - redis
+
+  orderservice:
+    build:
+      context: ../orderservice
+    container_name: orderservice_app
+    ports:
+      - "${ORDER_SERVICE_PORT}:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-db:5432/${POSTGRES_DB_ORDER}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - order-db
+
+  api-gateway:
+    build: .
+    container_name: apigateway_app
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      SERVICES_USER_SERVICE_URL: ${SERVICES_USER_SERVICE_URL}
+      SERVICES_AUTH_SERVICE_URL: ${SERVICES_AUTH_SERVICE_URL}
+    depends_on:
+      - authservice
+      - userservice
+      - orderservice
+volumes:
+  auth-postgres-data:
+  user-postgres-data:
+  order-postgres-data:
+  redis_data:
