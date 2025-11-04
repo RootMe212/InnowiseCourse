@@ -3,6 +3,7 @@ package com.innowisekir.userservice.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -27,7 +28,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-      throws  IOException {
+      throws IOException, ServletException {
+    String path = request.getRequestURI();
+    String method = request.getMethod();
+    if (isPermittedPath(path, method)) {
+      chain.doFilter(request, response);
+      return;
+    }
     String header = request.getHeader("Authorization");
     if (!StringUtils.hasText(header) || !header.startsWith("Bearer ")) {
       unauthorized(response, "Missing or invalid Authorization header");
@@ -46,5 +53,20 @@ public class JwtFilter extends OncePerRequestFilter {
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
     response.setContentType("application/json");
     new ObjectMapper().writeValue(response.getWriter(), java.util.Map.of("error", "UNAUTHORIZED", "message", message));
+  }
+  private boolean isPermittedPath(String path, String method) {
+    if (path.equals("/api/v1/users") && ("POST".equals(method) || "DELETE".equals(method))) {
+      return true;
+    }
+
+    if (path.matches("/api/v1/users/\\d+/exists")) {
+      return true;
+    }
+
+    if (path.startsWith("/actuator/")) {
+      return true;
+    }
+
+    return false;
   }
 }

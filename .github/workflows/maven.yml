@@ -72,8 +72,8 @@ jobs:
             -Dsonar.projectKey=RootMe212_InnowiseCourse \
             -Dsonar.organization=rootme212 \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.sources=src/main/java \ 
-            -Dsonar.tests=src/test/java \ 
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
             -Dsonar.java.binaries=target/classes
 
   artifact-creation:

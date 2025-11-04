@@ -1,10 +1,8 @@
 package com.innowisekir.authservice.service.impl;
 
-import com.innowisekir.authservice.dto.CreateUserDTO;
 import com.innowisekir.authservice.dto.LoginRequest;
 import com.innowisekir.authservice.dto.RegisterRequest;
 import com.innowisekir.authservice.dto.TokenResponse;
-import com.innowisekir.authservice.dto.UserDTO;
 import com.innowisekir.authservice.entity.UserCredentials;
 import com.innowisekir.authservice.exception.InvalidCredentialsException;
 import com.innowisekir.authservice.repository.UserCredentialsRepository;
@@ -55,18 +53,7 @@ public class AuthServiceImpl implements AuthService {
 
     Long userId = registerRequest.getUserId();
 
-    if (userId == null) {
-      CreateUserDTO createUserDTO = new CreateUserDTO(
-          registerRequest.getName(),
-          registerRequest.getSurname(),
-          registerRequest.getBirthDate(),
-          registerRequest.getEmail()
-      );
-      UserDTO createUser = userServiceClient.createUser(createUserDTO);
-      userId = createUser.getId();
-    } else {
-      userValidationService.ensureUserExistsInUserService(userId);
-    }
+    userValidationService.ensureUserExistsInUserService(userId);
 
     userValidationService.ensureUsernameAvailable(registerRequest.getUsername());
     userValidationService.ensureNoCredentialsForUserId(userId);

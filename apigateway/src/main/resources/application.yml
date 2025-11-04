@@ -1,0 +1,53 @@
+services:
+  user-service:
+    url: ${SERVICES_USER_SERVICE_URL:http://localhost:8082}
+  auth-service:
+    url: ${SERVICES_AUTH_SERVICE_URL:http://localhost:8081}
+server:
+  port: 8080
+spring:
+  application:
+    name: apigateway
+  main:
+    web-application-type: reactive
+
+  cloud:
+    gateway:
+      forwarded:
+        enabled: false
+      default-filters:
+        - RemoveResponseHeader=Server
+      routes:
+        - id: authservice
+          uri: ${SERVICES_AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/auth/login,/api/v1/auth/refresh,/api/v1/auth/validate,/api/v1/auth/logout
+
+
+        - id: userservice
+          uri: ${SERVICES_USER_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=3
+
+        - id: orderservice
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/orders/**
+          filters:
+            - StripPrefix=3
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: when_authorized
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-please-min32chars!!!!}
+    issuer: ${JWT_ISSUER:innowise-auth}
+    allowed-clock-skew-in-seconds: 60

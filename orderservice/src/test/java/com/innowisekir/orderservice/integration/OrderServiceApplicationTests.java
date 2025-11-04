@@ -46,28 +46,20 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Testcontainers
 @TestPropertySource(properties = {
     "spring.liquibase.drop-first=true",
     "spring.liquibase.enabled=true",
     "userservice.base-url=http://localhost:8089"
 })
 @DisplayName("OrderService integration tests")
-class OrderServiceApplicationTests {
+class OrderServiceApplicationTests extends TestConfig {
 
-  @Container
-  @ServiceConnection
-  static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
-      .withDatabaseName("testdb")
-      .withUsername("test")
-      .withPassword("test");
+
 
   private WireMockServer wireMockServer;
 
