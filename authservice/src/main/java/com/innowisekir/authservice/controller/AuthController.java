@@ -43,7 +43,7 @@ public class AuthController {
   @PostMapping("/validate")
   public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
 
-    if (authHeader == null || authHeader.startsWith("Bearer ")) {
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       throw new InvalidTokenException("Invalid authorization header");
     }
     String token = authHeader.substring(7); // Remove "Bearer " prefix
