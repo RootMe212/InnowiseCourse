@@ -1,0 +1,91 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.github.spotbugs' version '6.0.7'
+}
+
+group = 'com.innowiseKir'
+version = '0.0.1-SNAPSHOT'
+description = 'paymentservice'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+ext {
+	mapstructVersion = '1.5.5.Final'
+	openfeignVersion = '4.1.0'
+	testcontainersVersion = '1.19.3'
+	wiremockVersion = '3.0.1'
+	springCloudVersion = '2024.0.0'
+	liquibaseMongoDbVersion = '4.28.0'
+	kafkaVersion = '3.3.3'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.liquibase:liquibase-core'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation "org.springframework.kafka:spring-kafka:${kafkaVersion}"
+	compileOnly 'org.projectlombok:lombok'
+	implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+	implementation "org.liquibase.ext:liquibase-mongodb:${liquibaseMongoDbVersion}"
+
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+	testImplementation "org.testcontainers:mongodb:${testcontainersVersion}"
+	testImplementation "org.springframework.kafka:spring-kafka-test:${kafkaVersion}"
+	testImplementation "com.github.tomakehurst:wiremock-standalone:${wiremockVersion}"
+	testImplementation "org.testcontainers:kafka:${testcontainersVersion}"
+	testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner"
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+spotbugs {
+	effort = 'max'
+	reportLevel = 'low'
+	ignoreFailures = true
+}
+
+spotbugsMain {
+	reports {
+		html {
+			enabled = true
+			destination = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+		}
+		xml {
+			enabled = true
+			destination = file("$buildDir/reports/spotbugs/main/spotbugs.xml")
+		}
+	}
+}
+bootJar {
+	archiveFileName = "paymentservice.jar"
+}
