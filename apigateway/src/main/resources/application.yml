@@ -37,6 +37,13 @@ spring:
             - Path=/api/v1/orders/**
           filters:
             - StripPrefix=3
+
+        - id: paymentservice
+          uri: ${SERVICES_PAYMENT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/payments/**
+          filters:
+            - StripPrefix=3
 management:
   endpoints:
     web:

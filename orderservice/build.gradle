@@ -26,6 +26,7 @@ ext {
 	testcontainersVersion = '1.19.3'
 	wiremockVersion = '3.0.1'
 	springCloudVersion = '2024.0.0'
+	kafkaVersion = '3.3.3'
 }
 
 repositories {
@@ -47,6 +48,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.liquibase:liquibase-core'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation "org.springframework.kafka:spring-kafka:${kafkaVersion}"
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
@@ -59,9 +61,11 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation "org.springframework.kafka:spring-kafka-test:${kafkaVersion}"
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 	testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
 	testImplementation "com.github.tomakehurst:wiremock-standalone:${wiremockVersion}"
+	testImplementation "org.testcontainers:kafka:${testcontainersVersion}"
 	testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -88,4 +92,7 @@ spotbugsMain {
 			destination = file("$buildDir/reports/spotbugs/main/spotbugs.xml")
 		}
 	}
+}
+bootJar {
+	archiveFileName = "orderservice.jar"
 }

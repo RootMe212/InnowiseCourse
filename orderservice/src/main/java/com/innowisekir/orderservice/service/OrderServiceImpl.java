@@ -2,6 +2,8 @@ package com.innowisekir.orderservice.service;
 
 import com.innowisekir.orderservice.client.UserClient;
 import com.innowisekir.orderservice.dto.create.CreateOrderDTO;
+import com.innowisekir.orderservice.dto.event.CreateOrderEvent;
+import com.innowisekir.orderservice.dto.event.OrderItemEvent;
 import com.innowisekir.orderservice.dto.response.OrderResponse;
 import com.innowisekir.orderservice.dto.response.UserDTO;
 import com.innowisekir.orderservice.entity.Order;
@@ -9,6 +11,7 @@ import com.innowisekir.orderservice.exception.OrderNotFoundException;
 import com.innowisekir.orderservice.exception.UserServiceException;
 import com.innowisekir.orderservice.mapper.OrderMapper;
 import com.innowisekir.orderservice.repository.OrderRepository;
+import com.innowisekir.orderservice.service.kafka.OrderProducer;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -21,12 +24,14 @@ public class OrderServiceImpl implements OrderService {
   private final OrderRepository orderRepository;
   private final OrderMapper orderMapper;
   private final UserClient userClient;
+  private final OrderProducer orderProducer;
 
   public OrderServiceImpl(OrderRepository orderRepository, OrderMapper orderMapper,
-      UserClient userClient) {
+      UserClient userClient, OrderProducer orderProducer) {
     this.orderRepository = orderRepository;
     this.orderMapper = orderMapper;
     this.userClient = userClient;
+    this.orderProducer = orderProducer;
   }
 
   @Override
@@ -35,7 +40,34 @@ public class OrderServiceImpl implements OrderService {
     Order order = orderMapper.toEntity(createOrderDTO);
     order.setCreationDate(LocalDateTime.now());
     Order savedOrder = orderRepository.save(order);
+
+    CreateOrderEvent event = createEvent(savedOrder);
+    orderProducer.sendEvent(event);
+
     return buildOrderResponse(savedOrder,userEmail);
+  }
+
+  private CreateOrderEvent createEvent(Order order) {
+    CreateOrderEvent event = new CreateOrderEvent();
+    event.setOrderId(order.getId());
+    event.setUserId(order.getUserId());
+    event.setStatus(order.getStatus());
+    event.setCreationDate(order.getCreationDate());
+
+    if (order.getOrderItems() != null) {
+      List<OrderItemEvent> itemEvents = order.getOrderItems().stream()
+          .map(item -> {
+            OrderItemEvent itemEvent = new OrderItemEvent();
+            itemEvent.setItemId(item.getItem().getId());
+            itemEvent.setQuantity(item.getQuantity());
+            itemEvent.setPrice(item.getItem().getPrice());
+            return itemEvent;
+          })
+          .toList();
+      event.setItems(itemEvents);
+    }
+
+    return event;
   }
 
   private OrderResponse buildOrderResponse(Order savedOrder, String userEmail) {
@@ -102,5 +134,10 @@ public class OrderServiceImpl implements OrderService {
       throw new OrderNotFoundException("Order with id " + id + " not found");
     }
     orderRepository.deleteOrderById(id);
+  }
+  @Override
+  @Transactional
+  public void updateOrderStatus(Long orderId, String status) {
+    orderRepository.updateOrderById(status, orderId);
   }
 }
