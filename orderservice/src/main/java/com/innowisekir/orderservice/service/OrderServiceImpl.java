@@ -2,7 +2,7 @@ package com.innowisekir.orderservice.service;
 
 import com.innowisekir.orderservice.client.UserClient;
 import com.innowisekir.orderservice.dto.create.CreateOrderDTO;
-import com.innowisekir.orderservice.dto.event.CreateOrderEvent;
+import com.innowisekir.orderservice.dto.event.OrderCreateEvent;
 import com.innowisekir.orderservice.dto.event.OrderItemEvent;
 import com.innowisekir.orderservice.dto.response.OrderResponse;
 import com.innowisekir.orderservice.dto.response.UserDTO;
@@ -41,14 +41,14 @@ public class OrderServiceImpl implements OrderService {
     order.setCreationDate(LocalDateTime.now());
     Order savedOrder = orderRepository.save(order);
 
-    CreateOrderEvent event = createEvent(savedOrder);
+    OrderCreateEvent event = createEvent(savedOrder);
     orderProducer.sendEvent(event);
 
     return buildOrderResponse(savedOrder,userEmail);
   }
 
-  private CreateOrderEvent createEvent(Order order) {
-    CreateOrderEvent event = new CreateOrderEvent();
+  private OrderCreateEvent createEvent(Order order) {
+    OrderCreateEvent event = new OrderCreateEvent();
     event.setOrderId(order.getId());
     event.setUserId(order.getUserId());
     event.setStatus(order.getStatus());

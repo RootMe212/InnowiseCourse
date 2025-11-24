@@ -12,10 +12,10 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class UserServiceClient {
-  private final WebClient userServiceClient;
+  private final WebClient userServiceWebClient;
 
   public Mono<Long> createUser(CreateUserRequest createUserRequest) {
-    return userServiceClient
+    return userServiceWebClient
         .post()
         .uri("/api/v1/users")
         .bodyValue(createUserRequest)
@@ -26,7 +26,7 @@ public class UserServiceClient {
   public Mono<Void> rollbackUser(Long userId) {
     log.info("Rolling back user creation for ID: {}", userId);
 
-    return userServiceClient
+    return userServiceWebClient
         .delete()
         .uri("/api/v1/users/{id}", userId)
         .retrieve()

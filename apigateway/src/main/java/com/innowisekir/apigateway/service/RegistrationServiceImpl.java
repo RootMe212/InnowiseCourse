@@ -6,11 +6,9 @@ import com.innowisekir.apigateway.dto.AuthRegisterRequest;
 import com.innowisekir.apigateway.dto.CreateUserRequest;
 import com.innowisekir.apigateway.dto.RegisterRequest;
 import com.innowisekir.apigateway.dto.TokenResponse;
-import com.innowisekir.apigateway.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j

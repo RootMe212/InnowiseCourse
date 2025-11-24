@@ -1,6 +1,7 @@
 package com.innowisekir.paymentservice.service.kafka;
 
-import com.innowisekir.paymentservice.dto.event.CreatePaymentEvent;
+
+import com.innowisekir.paymentservice.dto.event.PaymentCreateEvent;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +13,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentProducer {
-  private final KafkaTemplate<String, CreatePaymentEvent> kafkaTemplate;
+  private final KafkaTemplate<String, PaymentCreateEvent> kafkaTemplate;
   private static final String CREATE_PAYMENT_TOPIC = "create-payment";
 
-  public CompletableFuture<SendResult<String, CreatePaymentEvent>> sendEvent(CreatePaymentEvent event) {
-    CompletableFuture<SendResult<String, CreatePaymentEvent>> future =
+  public CompletableFuture<SendResult<String, PaymentCreateEvent>> sendEvent(PaymentCreateEvent event) {
+    CompletableFuture<SendResult<String, PaymentCreateEvent>> future =
         kafkaTemplate.send(CREATE_PAYMENT_TOPIC, event.getPaymentId(), event);
 
     return future.whenComplete((result, ex) -> {

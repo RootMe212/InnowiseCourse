@@ -1,7 +1,7 @@
 package com.innowisekir.paymentservice.service.impl;
 
 import com.innowisekir.paymentservice.dto.create.CreatePaymentDTO;
-import com.innowisekir.paymentservice.dto.event.CreatePaymentEvent;
+import com.innowisekir.paymentservice.dto.event.PaymentCreateEvent;
 import com.innowisekir.paymentservice.dto.response.PaymentDTO;
 import com.innowisekir.paymentservice.entity.Payment;
 import com.innowisekir.paymentservice.entity.status.PaymentStatus;
@@ -43,14 +43,14 @@ public class PaymentServiceImpl implements PaymentService {
 
     Payment savedPayment = paymentRepository.save(payment);
 
-    CreatePaymentEvent event = createEvent(savedPayment);
+    PaymentCreateEvent event = createEvent(savedPayment);
     paymentProducer.sendEvent(event);
 
     return paymentMapper.toDTO(savedPayment);
   }
 
-  private CreatePaymentEvent createEvent(Payment payment) {
-    CreatePaymentEvent event = new CreatePaymentEvent();
+  private PaymentCreateEvent createEvent(Payment payment) {
+    PaymentCreateEvent event = new PaymentCreateEvent();
     event.setPaymentId(payment.getId());
     event.setOrderId(payment.getOrderId());
     event.setUserId(payment.getUserId());

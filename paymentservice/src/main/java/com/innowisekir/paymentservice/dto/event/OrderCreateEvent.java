@@ -1,4 +1,4 @@
-package com.innowisekir.orderservice.dto.event;
+package com.innowisekir.paymentservice.dto.event;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateOrderEvent {
+public class OrderCreateEvent {
   private Long orderId;
   private Long userId;
   private String status;

@@ -12,10 +12,10 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthServiceClient {
-  private final WebClient authServiceClient;
+  private final WebClient authServiceWebClient;
 
   public Mono<TokenResponse> createCredentials(AuthRegisterRequest authRegisterRequest) {
-    return authServiceClient
+    return authServiceWebClient
         .post()
         .uri("/api/v1/auth/register")
         .bodyValue(authRegisterRequest)

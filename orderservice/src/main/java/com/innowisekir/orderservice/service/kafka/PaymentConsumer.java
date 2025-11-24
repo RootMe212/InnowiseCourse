@@ -1,6 +1,6 @@
 package com.innowisekir.orderservice.service.kafka;
 
-import com.innowisekir.orderservice.dto.event.CreatePaymentEvent;
+import com.innowisekir.orderservice.dto.event.PaymentCreateEvent;
 import com.innowisekir.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ public class PaymentConsumer {
   private final OrderService orderService;
 
   @KafkaListener(topics = "create-payment", groupId = "order-service")
-  public void createPayment(CreatePaymentEvent event) {
+  public void createPayment(PaymentCreateEvent event) {
     log.info("Received CREATE_PAYMENT event: paymentId={}, orderId={}, status={}",
         event.getPaymentId(), event.getOrderId(), event.getStatus());
 
