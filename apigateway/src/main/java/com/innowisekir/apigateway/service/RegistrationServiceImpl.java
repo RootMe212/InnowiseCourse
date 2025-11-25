@@ -1,14 +1,14 @@
 package com.innowisekir.apigateway.service;
 
+import com.innowisekir.apigateway.client.AuthServiceClient;
+import com.innowisekir.apigateway.client.UserServiceClient;
 import com.innowisekir.apigateway.dto.AuthRegisterRequest;
 import com.innowisekir.apigateway.dto.CreateUserRequest;
 import com.innowisekir.apigateway.dto.RegisterRequest;
 import com.innowisekir.apigateway.dto.TokenResponse;
-import com.innowisekir.apigateway.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -16,8 +16,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class RegistrationServiceImpl implements RegistrationService {
 
-  private final WebClient userServiceClient;
-  private final WebClient authServiceClient;
+  private final UserServiceClient userServiceClient;
+  private final AuthServiceClient authServiceClient;
 
   @Override
   public Mono<TokenResponse> register(RegisterRequest registerRequest) {
@@ -25,7 +25,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         .flatMap(userId -> {
           log.info("User registered successfully");
 
-          return createCredentials(registerRequest,userId)
+          return createCredentials(registerRequest, userId)
               .onErrorResume(error -> {
                 log.error("Failed to create credentials, rolling back user: {}", userId);
                 return rollbackUser(userId).then(Mono.error(error));
@@ -43,38 +43,20 @@ public class RegistrationServiceImpl implements RegistrationService {
         registerRequest.getEmail()
     );
 
-    return userServiceClient
-        .post()
-        .uri("/api/v1/users")
-        .bodyValue(createUserRequest)
-        .retrieve().bodyToMono(UserResponse.class)
-        .map(UserResponse::getId);
+    return userServiceClient.createUser(createUserRequest);
   }
 
-  private Mono<TokenResponse> createCredentials(RegisterRequest registerRequest,Long userId) {
+  private Mono<TokenResponse> createCredentials(RegisterRequest registerRequest, Long userId) {
     var authRegisterRequest = new AuthRegisterRequest(
         registerRequest.getUsername(),
         registerRequest.getPassword(),
         userId
     );
 
-    return authServiceClient
-        .post()
-        .uri("/api/v1/auth/register")
-        .bodyValue(authRegisterRequest)
-        .retrieve().bodyToMono(TokenResponse.class);
+    return authServiceClient.createCredentials(authRegisterRequest);
   }
 
   private Mono<Void> rollbackUser(Long userId) {
-    log.info("Rolling back user creation for ID: {}", userId);
-
-    return userServiceClient
-        .delete()
-        .uri("/api/v1/users/{id}", userId)
-        .retrieve()
-        .bodyToMono(Void.class)
-        .doOnSuccess(v -> log.info("User {} rolled back", userId))
-        .doOnError(err -> log.error("User {} rollBack failed : {}", userId,err.getMessage()));
+    return userServiceClient.rollbackUser(userId);
   }
-
 }

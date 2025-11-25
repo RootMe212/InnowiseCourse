@@ -35,6 +35,46 @@ services:
     volumes:
       - order-postgres-data:/var/lib/postgresql/data
 
+  payment-db:
+    image: mongo:latest
+    container_name: payment-mongodb
+    environment:
+      MONGO_INITDB_DATABASE: paymentservice_db
+    ports:
+      - "${MONGODB_PORT}:27017"
+    volumes:
+      - payment-mongodb-data:/data/db
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: kafka-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "${ZOOKEEPER_PORT}:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA_PORT}:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
   redis:
     image: redis:latest
     container_name: userservice-redis
@@ -86,8 +126,30 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://order-db:5432/${POSTGRES_DB_ORDER}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
-      - order-db
+      order-db:
+          condition: service_started
+      kafka:
+          condition: service_healthy
+
+  paymentservice:
+    build:
+      context: ../paymentservice
+    container_name: paymentservice_app
+    ports:
+      - "${PAYMENT_SERVICE_PORT}:8084"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://payment-db:27017/paymentservice_db
+      SPRING_DATA_MONGODB_AUTO_INDEX_CREATION: "false"
+      SPRING_LIQUIBASE_URL: mongodb://payment-db:27017/paymentservice_db
+      SPRING_LIQUIBASE_ENABLED: "true"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      payment-db:
+        condition: service_started
+      kafka:
+        condition: service_healthy
 
   api-gateway:
     build: .
@@ -99,12 +161,18 @@ services:
       JWT_ISSUER: ${JWT_ISSUER}
       SERVICES_USER_SERVICE_URL: ${SERVICES_USER_SERVICE_URL}
       SERVICES_AUTH_SERVICE_URL: ${SERVICES_AUTH_SERVICE_URL}
+      SERVICES_ORDER_SERVICE_URL: ${SERVICES_ORDER_SERVICE_URL}
+      SERVICES_PAYMENT_SERVICE_URL: ${SERVICES_PAYMENT_SERVICE_URL}
     depends_on:
       - authservice
       - userservice
       - orderservice
+      - paymentservice
+
 volumes:
   auth-postgres-data:
   user-postgres-data:
   order-postgres-data:
+  payment-mongodb-data:
+  kafka-data:
   redis_data:

@@ -1,7 +1,7 @@
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre-jammy
 
 COPY build/libs/*.jar orderservice.jar
 
-EXPOSE 8080
+EXPOSE 8083
 
 ENTRYPOINT ["java", "-jar", "orderservice.jar"]

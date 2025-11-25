@@ -15,14 +15,14 @@ public class WebClientConfig {
   private String authServiceUrl;
 
   @Bean
-  public WebClient userServiceClient() {
+  public WebClient userServiceWebClient() {
     return WebClient.builder()
         .baseUrl(userServiceUrl)
         .build();
   }
 
   @Bean
-  public WebClient authServiceClient() {
+  public WebClient authServiceWebClient() {
     return WebClient.builder()
         .baseUrl(authServiceUrl)
         .build();

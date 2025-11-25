@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+  xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+      http://www.liquibase.org/xml/ns/dbchangelog-ext https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+  <changeSet id="001-create-payments-collection" author="system">
+    <ext:createCollection collectionName="payments">
+      <ext:options>
+       {
+          validator: {
+            $jsonSchema: {
+              bsonType: "object",
+              required: ["orderId", "userId", "status", "timestamp", "paymentAmount"],
+              properties: {
+                orderId: { bsonType: "long" },
+                userId: { bsonType: "long" },
+                status: { enum: ["SUCCESS","FAILED"] },
+                timestamp: { bsonType: "date" },
+                paymentAmount: { bsonType: "decimal" }
+              }
+            }
+          },
+          validationLevel: "strict",
+          validationAction: "error"
+      }
+      </ext:options>
+    </ext:createCollection>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_order_id">
+      <ext:keys>{ "orderId": 1 }</ext:keys>
+    </ext:createIndex>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_user_id">
+      <ext:keys>{ "userId": 1 }</ext:keys>
+    </ext:createIndex>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_status">
+      <ext:keys>{ "status": 1 }</ext:keys>
+    </ext:createIndex>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_timestamp">
+      <ext:keys>{ "timestamp": 1 }</ext:keys>
+    </ext:createIndex>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_user_status">
+      <ext:keys>{ "userId": 1, "status": 1 }</ext:keys>
+    </ext:createIndex>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_order_status">
+      <ext:keys>{ "orderId": 1, "status": 1 }</ext:keys>
+    </ext:createIndex>
+
+    <ext:createIndex collectionName="payments" indexName="idx_payments_status_timestamp">
+      <ext:keys>{ "status": 1, "timestamp": 1 }</ext:keys>
+    </ext:createIndex>
+  </changeSet>
+</databaseChangeLog>
