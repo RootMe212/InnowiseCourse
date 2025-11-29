@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -46,7 +45,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -80,6 +78,7 @@ class OrderServiceApplicationTests extends TestConfig {
     registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
     registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
     registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+    registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
   }
 
   @BeforeEach

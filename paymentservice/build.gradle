@@ -50,6 +50,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 	implementation "org.liquibase.ext:liquibase-mongodb:${liquibaseMongoDbVersion}"
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"

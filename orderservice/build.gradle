@@ -51,6 +51,7 @@ dependencies {
 	implementation "org.springframework.kafka:spring-kafka:${kafkaVersion}"
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 
 	annotationProcessor 'org.projectlombok:lombok'

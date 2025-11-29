@@ -22,6 +22,7 @@ import com.innowisekir.orderservice.entity.Order;
 import com.innowisekir.orderservice.mapper.OrderMapper;
 import com.innowisekir.orderservice.repository.OrderRepository;
 import com.innowisekir.orderservice.service.OrderServiceImpl;
+import com.innowisekir.orderservice.service.kafka.OrderProducer;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +47,8 @@ class OrderServiceImplTest {
 
   @Mock
   private UserClient userClient;
+  @Mock
+  private OrderProducer orderProducer;
 
   @InjectMocks
   private OrderServiceImpl orderService;
@@ -110,6 +113,7 @@ class OrderServiceImplTest {
     assertEquals(userDTO.getEmail(), result.getUser().getEmail());
     verify(orderRepository).save(any(Order.class));
     verify(userClient).getByEmail("user@example.com");
+    verify(orderProducer).sendEvent(any());
   }
 
   @Test

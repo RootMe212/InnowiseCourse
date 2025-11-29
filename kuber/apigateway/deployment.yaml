@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway
+  labels:
+    app: apigateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apigateway
+  template:
+    metadata:
+      name: apigateway
+      labels:
+        app: apigateway
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: apigateway
+          image: apigateway:1.0.0
+          imagePullPolicy: Never
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+            name: http
+          env:
+            - name: SERVICES_ORDER_SERVICE_URL
+              value: "http://orderservice:8083"
+            - name: SERVICES_PAYMENT_SERVICE_URL
+              value: "http://paymentservice:8084"
+            - name: JWT_SECRET
+              value: "dev-secret-change-me-please-min32chars!!!!"
+            - name: JWT_ISSUER
+              value: "innowise-auth"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "100m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      restartPolicy: Always
+      
