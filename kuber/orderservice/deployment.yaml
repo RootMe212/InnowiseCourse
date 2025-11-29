@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservice
+  labels:
+    app: orderservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderservice
+  template:
+    metadata:
+      name: orderservice
+      labels:
+        app: orderservice
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: orderservice
+          image: orderservice:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+              name: http
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://host.docker.internal:5433/orderservice_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "1234567"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "host.docker.internal:9092"
+            - name: SPRING_DATA_REDIS_HOST
+              value: "host.docker.internal"
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
+            - name: SPRING_SECURITY_JWT_SECRET
+              value: "dev-secret-change-me"
+            - name: JWT_SECRET
+              value: "dev-secret-change-me"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gb"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              port: 8083
+              path: /actuator/health/liveness
+            initialDelaySeconds: 60
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 5
+
+      
