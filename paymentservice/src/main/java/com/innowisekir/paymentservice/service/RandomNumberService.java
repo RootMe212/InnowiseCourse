@@ -11,20 +11,20 @@ public class RandomNumberService {
   private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static final String API_URL =
-      "https://www.randomnumberapi.com/api/v1.0/random?min=1&max=100&count=1";
-
   private final String apiUrl;
 
   public RandomNumberService(RestTemplate restTemplate,
-      @Value("${random.number.api.url:" + API_URL + "}") String apiUrl) {
+      @Value("${random.number.api.url}") String apiUrl) {
     this.restTemplate = restTemplate;
     this.apiUrl = apiUrl;
+    System.out.println("RandomNumberService constructor: apiUrl = " + this.apiUrl);
   }
 
   public int getRandomNumber() {
     try {
+      System.out.println("RandomNumberService.getRandomNumber: using apiUrl = " + apiUrl);
       String body = restTemplate.getForObject(apiUrl, String.class);
+
       if (body == null || body.isBlank()) {
         throw new RandomNumberApiException("Empty response from random API");
       }
